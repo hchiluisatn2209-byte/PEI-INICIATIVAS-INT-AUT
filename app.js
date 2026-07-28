@@ -495,6 +495,10 @@ function clearQueueDetail() {
 
 // ── Admin actions ────────────────────────────────────────
 async function changeStatus(id, newStatus) {
+  if (newStatus === 'rejected') {
+    showRejectModal(id);
+    return;
+  }
   const i = initiatives.find(x => x.id === id);
   if (!i) return;
   const prev = i.status;
@@ -504,6 +508,40 @@ async function changeStatus(id, newStatus) {
   persist();
   await saveToSupabase(i);
   toast('Estado actualizado a: ' + STATUS_LABEL[newStatus]);
+  renderQueueList();
+  setQueueDetail(id);
+}
+
+function showRejectModal(id) {
+  const i = initiatives.find(x => x.id === id);
+  if (!i) return;
+  const modal = document.getElementById('rejectModal');
+  document.getElementById('rejectTitle').textContent = i.title;
+  document.getElementById('rejectReason').value = '';
+  modal.dataset.id = id;
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('rejectReason').focus(), 100);
+}
+
+function closeRejectModal() {
+  document.getElementById('rejectModal').style.display = 'none';
+}
+
+async function confirmReject() {
+  const modal = document.getElementById('rejectModal');
+  const id = modal.dataset.id;
+  const reason = document.getElementById('rejectReason').value.trim();
+  if (!reason) { toast('Escribe el motivo del rechazo'); return; }
+  const i = initiatives.find(x => x.id === id);
+  if (!i) return;
+  const prev = i.status;
+  i.status = 'rejected';
+  i.updates = i.updates || [];
+  i.updates.push({ date: today(), author: 'Automatizaciones', msg: '🚫 Rechazada. Motivo: ' + reason });
+  persist();
+  await saveToSupabase(i);
+  closeRejectModal();
+  toast('Iniciativa rechazada');
   renderQueueList();
   setQueueDetail(id);
 }
@@ -550,6 +588,24 @@ function renderDashboard() {
   const statusOrder = ['sent','analysis','dev','done','rejected'];
   const maxS = Math.max(...statusOrder.map(s => byStatus[s] || 0), 1);
   const statusColors = { sent:'#b45309', analysis:'#4f46e5', dev:'#7c3aed', done:'#16a34a', rejected:'#dc2626' };
+  // Rejected initiatives detail list
+  const rejected = initiatives.filter(i => i.status === 'rejected');
+  const rejEl = document.getElementById('rejected-list');
+  if (rejEl) {
+    rejEl.innerHTML = '<h3 style="margin-bottom:12px">Iniciativas rechazadas (' + rejected.length + ')</h3>' +
+      (rejected.length ? rejected.map(function(i) {
+        const reason = (i.updates || []).filter(u => u.msg.includes('Rechazada')).pop();
+        return '<div style="border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+            '<strong style="font-size:14px">' + esc(i.title) + '</strong>' +
+            '<span style="font-size:12px;color:var(--text-muted)">' + i.created + '</span>' +
+          '</div>' +
+          '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px">' + esc(i.name) + ' · ' + esc(i.area || '') + '</div>' +
+          (reason ? '<div style="font-size:13px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:8px 10px;color:var(--c-danger);margin-top:6px"><i class="ti ti-ban"></i> ' + esc(reason.msg.replace('🚫 Rechazada. Motivo: ', '')) + '</div>' : '') +
+        '</div>';
+      }).join('') : '<p style="font-size:13px;color:var(--text-muted)">No hay iniciativas rechazadas.</p>');
+  }
+
   document.getElementById('status-chart').innerHTML = '<h3>Distribución por estado</h3>' +
     (statusOrder.filter(s => byStatus[s]).map(function(s) {
       return '<div class="bar-row"><div class="bar-label">' + STATUS_LABEL[s] + '</div><div class="bar-track"><div class="bar-fill" style="width:' + Math.round((byStatus[s]||0)/maxS*100) + '%;background:' + statusColors[s] + '"></div></div><div class="bar-count">' + (byStatus[s]||0) + '</div></div>';
