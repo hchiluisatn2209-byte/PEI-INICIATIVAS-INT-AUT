@@ -118,12 +118,13 @@ async function bootApp() {
   // Show loading
   document.getElementById('loginScreen').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px"><div style="font-size:32px">⏳</div><p style="color:#6b7280">Cargando iniciativas...</p></div>';
 
-  // Load from Supabase
+  // Load from Supabase — always use remote data
   const remote = await loadFromSupabase();
-  if (remote && remote.length > 0) {
-    initiatives = remote;
-    persist(); // sync to localStorage as cache
+  if (remote !== null) {
+    initiatives = remote; // use Supabase data (even if empty)
+    persist();
   }
+  // If Supabase failed (null), fall back to localStorage cache
 
   // Hide login, show app
   document.getElementById('loginScreen').style.display = 'none';
