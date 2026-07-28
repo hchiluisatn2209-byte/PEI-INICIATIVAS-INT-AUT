@@ -179,29 +179,33 @@ function saveDraftEdit(id, andSend) {
 async function exportAllToSheets() {
   if (!scriptUrl) { toast('Configura primero la URL de Google Sheets'); return; }
   const btn = document.getElementById('exportBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Exportando...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Exportando...'; }
   try {
     const toExport = initiatives.filter(i => i.status !== 'draft');
-    const resp = await fetch(scriptUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(toExport)
-    });
+    if (!toExport.length) { toast('No hay iniciativas enviadas para exportar'); if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-upload"></i> Exportar todo a Sheets';} return; }
+    // Send in chunks of 20 via GET to avoid URL length limits
+    const chunk = toExport.slice(0, 20);
+    const url = scriptUrl + '?action=export&data=' + encodeURIComponent(JSON.stringify(chunk));
+    const resp = await fetch(url);
     const result = await resp.json();
     if (result.success) {
       toast('✓ ' + toExport.length + ' iniciativas exportadas a Google Sheets');
     } else {
-      toast('Error al exportar: ' + (result.error || 'desconocido'));
+      toast('Error: ' + (result.error || 'desconocido'));
     }
   } catch (e) {
     toast('Error de conexión con Google Sheets');
+    console.error(e);
   }
-  if (btn) { btn.disabled = false; btn.textContent = 'Exportar todo a Sheets'; }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-upload"></i> Exportar todo a Sheets'; }
 }
 
 async function syncToSheets(init) {
+  if (!scriptUrl) return;
   try {
-    await fetch(scriptUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(init) });
+    // Use GET with encoded param to avoid CORS preflight
+    const url = scriptUrl + '?action=export&data=' + encodeURIComponent(JSON.stringify([init]));
+    await fetch(url, { method: 'GET' });
   } catch (e) { console.warn('Sheets sync failed:', e); }
 }
 
