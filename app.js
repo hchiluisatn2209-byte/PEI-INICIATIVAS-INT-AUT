@@ -134,7 +134,7 @@ function submitInitiative() {
   init.updates = [{
     date: today(),
     author: 'Sistema',
-    msg: 'Iniciativa enviada a Proyectos Especiales para revisión y análisis.'
+    msg: 'Iniciativa enviada a Automatizaciones para revisión y análisis.'
   }];
   initiatives.push(init);
   persist();
@@ -232,7 +232,7 @@ function changeStatus(id, newStatus) {
   i.updates = i.updates || [];
   i.updates.push({
     date: today(),
-    author: 'Proyectos Especiales',
+    author: 'Automatizaciones',
     msg: `Estado actualizado: ${STATUS_LABEL[prev]} → ${STATUS_LABEL[newStatus]}`
   });
   persist();
@@ -246,7 +246,7 @@ function addComment(id) {
   const i = initiatives.find(x => x.id === id);
   if (!i) return;
   i.updates = i.updates || [];
-  i.updates.push({ date: today(), author: 'Proyectos Especiales', msg: input.value.trim() });
+  i.updates.push({ date: today(), author: 'Automatizaciones', msg: input.value.trim() });
   persist();
   toast('Nota agregada');
   input.value = '';
@@ -346,7 +346,7 @@ function detailHTML(i, isAdmin) {
     </div>
     ${isAdmin ? `
     <div class="admin-controls">
-      <div class="admin-controls-title">Gestión · Proyectos Especiales</div>
+      <div class="admin-controls-title">Gestión · Automatizaciones</div>
       <div class="status-buttons">${statusActions}</div>
       <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Agregar nota de avance</div>
       <div class="comment-form">
@@ -393,9 +393,9 @@ function getSampleData() {
       notes: 'El banco envía el extracto en PDF los primeros 5 días del mes.',
       status: 'dev', created: '15/06/2025',
       updates: [
-        { date: '15/06/2025', author: 'Sistema', msg: 'Iniciativa enviada a Proyectos Especiales.' },
-        { date: '02/07/2025', author: 'Proyectos Especiales', msg: 'Análisis completado. Factible con RPA + extracción de PDF. Iniciando desarrollo.' },
-        { date: '20/07/2025', author: 'Proyectos Especiales', msg: 'Primer prototipo listo. En pruebas con datos reales del mes de junio.' }
+        { date: '15/06/2025', author: 'Sistema', msg: 'Iniciativa enviada a Automatizaciones.' },
+        { date: '02/07/2025', author: 'Automatizaciones', msg: 'Análisis completado. Factible con RPA + extracción de PDF. Iniciando desarrollo.' },
+        { date: '20/07/2025', author: 'Automatizaciones', msg: 'Primer prototipo listo. En pruebas con datos reales del mes de junio.' }
       ]
     },
     {
@@ -407,8 +407,8 @@ function getSampleData() {
       systems: 'Correo Outlook, Word, carpetas compartidas',
       notes: '', status: 'analysis', created: '10/07/2025',
       updates: [
-        { date: '10/07/2025', author: 'Sistema', msg: 'Iniciativa enviada a Proyectos Especiales.' },
-        { date: '18/07/2025', author: 'Proyectos Especiales', msg: 'En análisis de viabilidad. Evaluando integración con ATS existente.' }
+        { date: '10/07/2025', author: 'Sistema', msg: 'Iniciativa enviada a Automatizaciones.' },
+        { date: '18/07/2025', author: 'Automatizaciones', msg: 'En análisis de viabilidad. Evaluando integración con ATS existente.' }
       ]
     },
     {
@@ -421,7 +421,7 @@ function getSampleData() {
       notes: 'Ya existe conexión SQL, falta solo automatizar la consolidación.',
       status: 'sent', created: '25/07/2025',
       updates: [
-        { date: '25/07/2025', author: 'Sistema', msg: 'Iniciativa enviada a Proyectos Especiales para revisión.' }
+        { date: '25/07/2025', author: 'Sistema', msg: 'Iniciativa enviada a Automatizaciones para revisión.' }
       ]
     },
     {
@@ -434,9 +434,9 @@ function getSampleData() {
       notes: '', status: 'done', created: '01/05/2025',
       updates: [
         { date: '01/05/2025', author: 'Sistema', msg: 'Iniciativa enviada.' },
-        { date: '15/05/2025', author: 'Proyectos Especiales', msg: 'Aprobada. Iniciando desarrollo con GPT-4 + integración Salesforce.' },
-        { date: '10/06/2025', author: 'Proyectos Especiales', msg: 'Bot desplegado en ambiente de pruebas. Precisión del 87% en clasificación.' },
-        { date: '01/07/2025', author: 'Proyectos Especiales', msg: 'Producción activa. Resolviendo el 64% de consultas automáticamente.' }
+        { date: '15/05/2025', author: 'Automatizaciones', msg: 'Aprobada. Iniciando desarrollo con GPT-4 + integración Salesforce.' },
+        { date: '10/06/2025', author: 'Automatizaciones', msg: 'Bot desplegado en ambiente de pruebas. Precisión del 87% en clasificación.' },
+        { date: '01/07/2025', author: 'Automatizaciones', msg: 'Producción activa. Resolviendo el 64% de consultas automáticamente.' }
       ]
     }
   ];
