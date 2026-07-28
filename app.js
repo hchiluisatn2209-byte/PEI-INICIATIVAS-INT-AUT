@@ -176,6 +176,29 @@ function saveDraftEdit(id, andSend) {
   setMyDetail(id);
 }
 
+async function exportAllToSheets() {
+  if (!scriptUrl) { toast('Configura primero la URL de Google Sheets'); return; }
+  const btn = document.getElementById('exportBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Exportando...'; }
+  try {
+    const toExport = initiatives.filter(i => i.status !== 'draft');
+    const resp = await fetch(scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(toExport)
+    });
+    const result = await resp.json();
+    if (result.success) {
+      toast('✓ ' + toExport.length + ' iniciativas exportadas a Google Sheets');
+    } else {
+      toast('Error al exportar: ' + (result.error || 'desconocido'));
+    }
+  } catch (e) {
+    toast('Error de conexión con Google Sheets');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Exportar todo a Sheets'; }
+}
+
 async function syncToSheets(init) {
   try {
     await fetch(scriptUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(init) });
