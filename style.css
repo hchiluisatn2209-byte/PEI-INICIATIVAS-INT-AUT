@@ -476,3 +476,88 @@ textarea { resize: vertical; line-height: 1.6; }
   letter-spacing: .05em;
   margin-bottom: 8px;
 }
+
+/* ─── Login Screen ─── */
+.login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--surface-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+.login-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px 48px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 24px rgba(0,0,0,.08);
+}
+.login-icon {
+  width: 56px; height: 56px;
+  background: var(--c-brand-light);
+  color: var(--c-brand);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 16px;
+}
+.login-card h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.login-card > p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+.login-card .g_id_signin {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.login-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px !important;
+}
+
+/* ─── User info in sidebar ─── */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--surface-0);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+}
+.user-avatar {
+  font-size: 28px;
+  color: var(--c-brand);
+  flex-shrink: 0;
+  line-height: 1;
+}
+.user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+.user-email {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
