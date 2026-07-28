@@ -1,12 +1,12 @@
-# AutoIA — Registro de Iniciativas de Automatización
+# Iniciativas Proyectos Corporativos — Registro de Iniciativas de Automatización
 
-Sistema interno para registrar, escalar y hacer seguimiento de iniciativas de automatización con IA hacia el equipo de **Proyectos Especiales**.
+Sistema interno para registrar, escalar y hacer seguimiento de iniciativas de automatización con IA hacia el equipo de **Automatizaciones**.
 
 ---
 
 ## Funcionalidades
 
-| Funcionalidad | Solicitante | Proyectos Especiales |
+| Funcionalidad | Solicitante | Automatizaciones |
 |---|---|---|
 | Registrar nueva iniciativa | ✅ | — |
 | Guardar borrador | ✅ | — |
@@ -90,7 +90,7 @@ A partir de ahí, cada iniciativa enviada se sincroniza automáticamente al Goog
 - **Sin servidor requerido**: la app es 100% HTML/CSS/JS estático
 - **Datos locales**: `localStorage` persiste entre sesiones en el mismo navegador
 - **Multi-usuario real**: requiere Google Sheets como backend (ver arriba)
-- **Roles**: el cambio de rol (Solicitante / Proyectos Especiales) es manual; para producción se puede integrar con autenticación de Google
+- **Roles**: el cambio de rol (Solicitante / Automatizaciones) es manual; para producción se puede integrar con autenticación de Google
 
 ---
 
