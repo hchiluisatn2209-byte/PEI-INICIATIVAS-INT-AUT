@@ -143,23 +143,38 @@ function submitInitiative() {
   toast('Iniciativa enviada exitosamente');
 }
 
-function submitDraft(id) {
+function saveDraftEdit(id, andSend = false) {
   const i = initiatives.find(x => x.id === id);
   if (!i) return;
-  if (!i.name || !i.area || !i.title || !i.desc || !i.expected || !i.impact) {
-    toast('El borrador tiene campos obligatorios incompletos. Edítalo desde Nueva iniciativa.');
-    return;
+
+  // Read values from inline edit form
+  i.name     = document.getElementById(`d-name-${id}`)?.value.trim()    || i.name;
+  i.area     = document.getElementById(`d-area-${id}`)?.value           || i.area;
+  i.title    = document.getElementById(`d-title-${id}`)?.value.trim()   || i.title;
+  i.desc     = document.getElementById(`d-desc-${id}`)?.value.trim()    || i.desc;
+  i.expected = document.getElementById(`d-expected-${id}`)?.value.trim()|| i.expected;
+  i.impact   = document.getElementById(`d-impact-${id}`)?.value         || i.impact;
+  i.freq     = document.getElementById(`d-freq-${id}`)?.value           || i.freq;
+  i.hours    = document.getElementById(`d-hours-${id}`)?.value          || i.hours;
+  i.people   = document.getElementById(`d-people-${id}`)?.value         || i.people;
+  i.systems  = document.getElementById(`d-systems-${id}`)?.value.trim() || i.systems;
+  i.notes    = document.getElementById(`d-notes-${id}`)?.value.trim()   || i.notes;
+
+  if (andSend) {
+    if (!i.name || !i.area || !i.title || !i.desc || !i.expected || !i.impact) {
+      toast('Completa los campos obligatorios (*) antes de enviar');
+      return;
+    }
+    i.status = 'sent';
+    i.updates = i.updates || [];
+    i.updates.push({ date: today(), author: 'Sistema', msg: 'Iniciativa enviada a Automatizaciones para revisión y análisis.' });
+    persist();
+    if (scriptUrl) syncToSheets(i);
+    toast('Iniciativa enviada exitosamente');
+  } else {
+    persist();
+    toast('Borrador actualizado');
   }
-  i.status = 'sent';
-  i.updates = i.updates || [];
-  i.updates.push({
-    date: today(),
-    author: 'Sistema',
-    msg: 'Iniciativa enviada a Automatizaciones para revisión y análisis.'
-  });
-  persist();
-  if (scriptUrl) syncToSheets(i);
-  toast('Iniciativa enviada exitosamente');
   showMyDetail(id);
 }
 
@@ -230,7 +245,7 @@ function renderQueue() {
     .sort((a, b) => (IMPACT_ORDER[a.impact] ?? 1) - (IMPACT_ORDER[b.impact] ?? 1));
 
   const el = document.getElementById('queue-list');
-  document.getElementById('queue-detail').innerHTML = emptyDetail();
+  if (!selectedId) { document.getElementById("queue-detail").innerHTML = emptyDetail(); }
 
   if (!list.length) {
     el.innerHTML = emptyState('ti-inbox', 'No hay iniciativas en la cola.');
@@ -243,8 +258,8 @@ function showQueueDetail(id) {
   selectedId = id;
   const i = initiatives.find(x => x.id === id);
   if (!i) return;
-  document.getElementById('queue-detail').innerHTML = detailHTML(i, true);
   renderQueue();
+  document.getElementById("queue-detail").innerHTML = detailHTML(i, true);
 }
 
 // ── Admin actions ────────────────────────────────────────
@@ -379,11 +394,75 @@ function detailHTML(i, isAdmin) {
       </div>
     </div>` : ''}
     ${!isAdmin && i.status === 'draft' ? `
-    <div class="admin-controls">
-      <div class="admin-controls-title">Este borrador aún no ha sido enviado</div>
-      <button class="btn btn-primary" onclick="submitDraft('${i.id}')">
-        <i class="ti ti-send"></i> Enviar a Automatizaciones
-      </button>
+    <div class="admin-controls draft-edit-form">
+      <div class="admin-controls-title"><i class="ti ti-edit"></i> Editar borrador antes de enviar</div>
+      <div class="draft-grid">
+        <div class="field">
+          <label>Nombre completo <span class="req">*</span></label>
+          <input type="text" id="d-name-${i.id}" value="${esc(i.name)}">
+        </div>
+        <div class="field">
+          <label>Área / Departamento <span class="req">*</span></label>
+          <select id="d-area-${i.id}">
+            <option value="">Seleccionar área</option>
+            ${['Operaciones','Finanzas','Recursos Humanos','Comercial / Ventas','TI / Tecnología','Atención al Cliente','Legal / Cumplimiento','Logística','Planificación','Otra']
+              .map(a => `<option value="${a}"${i.area===a?' selected':''}>${a}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field draft-full">
+          <label>Nombre de la iniciativa <span class="req">*</span></label>
+          <input type="text" id="d-title-${i.id}" value="${esc(i.title)}">
+        </div>
+        <div class="field draft-full">
+          <label>Proceso actual <span class="req">*</span></label>
+          <textarea id="d-desc-${i.id}" rows="3">${esc(i.desc)}</textarea>
+        </div>
+        <div class="field draft-full">
+          <label>Resultado esperado <span class="req">*</span></label>
+          <textarea id="d-expected-${i.id}" rows="2">${esc(i.expected)}</textarea>
+        </div>
+        <div class="field">
+          <label>Impacto estimado <span class="req">*</span></label>
+          <select id="d-impact-${i.id}">
+            <option value="">Seleccionar</option>
+            <option value="high"${i.impact==='high'?' selected':''}>Alto</option>
+            <option value="med"${i.impact==='med'?' selected':''}>Medio</option>
+            <option value="low"${i.impact==='low'?' selected':''}>Bajo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Frecuencia</label>
+          <select id="d-freq-${i.id}">
+            <option value="">Seleccionar</option>
+            ${['Diaria','Semanal','Quincenal','Mensual','Bajo demanda']
+              .map(f => `<option${i.freq===f?' selected':''}>${f}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Horas / ejecución</label>
+          <input type="number" id="d-hours-${i.id}" value="${i.hours||''}" min="0" step="0.5">
+        </div>
+        <div class="field">
+          <label>Personas involucradas</label>
+          <input type="number" id="d-people-${i.id}" value="${i.people||''}" min="1">
+        </div>
+        <div class="field draft-full">
+          <label>Sistemas / herramientas</label>
+          <input type="text" id="d-systems-${i.id}" value="${esc(i.systems)}">
+        </div>
+        <div class="field draft-full">
+          <label>Notas adicionales</label>
+          <textarea id="d-notes-${i.id}" rows="2">${esc(i.notes)}</textarea>
+        </div>
+      </div>
+      <div class="draft-actions">
+        <button class="btn" onclick="saveDraftEdit('${i.id}')">
+          <i class="ti ti-device-floppy"></i> Guardar cambios
+        </button>
+        <button class="btn btn-primary" onclick="saveDraftEdit('${i.id}', true)">
+          <i class="ti ti-send"></i> Guardar y enviar a Automatizaciones
+        </button>
+      </div>
     </div>` : ''}
     <div class="timeline">
       <div class="timeline-title">Bitácora de avances</div>
