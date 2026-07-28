@@ -188,27 +188,33 @@ function sendToSheetsViaGet(payload) {
   });
 }
 
-async function exportAllToSheets() {
-  if (!scriptUrl) { toast('Configura primero la URL de Google Sheets'); return; }
-  const btn = document.getElementById('exportBtn');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Exportando...'; }
-  try {
-    const toExport = initiatives.filter(i => i.status !== 'draft');
-    if (!toExport.length) {
-      toast('No hay iniciativas enviadas para exportar');
-      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-upload"></i> Exportar todo a Sheets'; }
-      return;
-    }
-    // Send one by one via GET beacon (no CORS issues)
-    for (let idx = 0; idx < toExport.length; idx++) {
-      await sendToSheetsViaGet(toExport[idx]);
-    }
-    toast('✓ ' + toExport.length + ' iniciativas enviadas a Google Sheets');
-  } catch (e) {
-    toast('Error al exportar');
-    console.error(e);
-  }
-  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-upload"></i> Exportar todo a Sheets'; }
+function exportAllToSheets() {
+  const toExport = initiatives.filter(i => i.status !== 'draft');
+  if (!toExport.length) { toast('No hay iniciativas enviadas para exportar'); return; }
+  const json = JSON.stringify(toExport, null, 2);
+  navigator.clipboard.writeText(json).then(function() {
+    toast('✓ JSON copiado (' + toExport.length + ' iniciativas) — pégalo en Apps Script');
+    showCopyInstructions();
+  }).catch(function() {
+    // Fallback for browsers that block clipboard
+    const ta = document.createElement('textarea');
+    ta.value = json;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('✓ JSON copiado (' + toExport.length + ' iniciativas) — pégalo en Apps Script');
+    showCopyInstructions();
+  });
+}
+
+function showCopyInstructions() {
+  const modal = document.getElementById('copyInstructionsModal');
+  if (modal) modal.style.display = 'flex';
+}
+function closeCopyInstructions() {
+  const modal = document.getElementById('copyInstructionsModal');
+  if (modal) modal.style.display = 'none';
 }
 
 async function syncToSheets(init) {
