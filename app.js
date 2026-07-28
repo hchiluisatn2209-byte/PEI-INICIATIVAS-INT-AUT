@@ -1,3 +1,74 @@
+// ── Auth ──────────────────────────────────────────────
+const ADMIN_EMAILS = [
+  'bnuneztn0904@gmail.com',
+  'geovanna.naranjo23@gmail.com',
+  'hchiluisatn2209@gmail.com',
+  'cralarcontn1607@gmail.com'
+];
+
+let currentUserEmail = '';
+let currentUserName = '';
+
+function handleGoogleLogin(response) {
+  // Decode JWT token from Google
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  currentUserEmail = payload.email;
+  currentUserName = payload.name;
+
+  // Save session
+  sessionStorage.setItem('ia_email', currentUserEmail);
+  sessionStorage.setItem('ia_name', currentUserName);
+
+  bootApp();
+}
+
+function bootApp() {
+  // Hide login, show app
+  document.getElementById('loginScreen').style.display = 'none';
+  const app = document.getElementById('appContainer');
+  app.style.display = 'flex';
+
+  // Set role based on email
+  const isAdmin = ADMIN_EMAILS.includes(currentUserEmail.toLowerCase());
+  role = isAdmin ? 'admin' : 'user';
+
+  // Update UI
+  document.getElementById('roleSelect').value = role;
+  document.getElementById('userDisplay').textContent = currentUserName;
+  document.getElementById('userEmail').textContent = currentUserEmail;
+  document.getElementById('roleSelect').disabled = true; // lock role
+
+  // Pre-fill name field with user's name
+  const nameField = document.getElementById('f-name');
+  if (nameField && currentUserName) nameField.value = currentUserName;
+
+  // Show admin tabs if needed
+  switchRole();
+
+  // Show appropriate default tab
+  if (isAdmin) showTab('queue');
+  else showTab('my');
+}
+
+function checkSession() {
+  const email = sessionStorage.getItem('ia_email');
+  const name = sessionStorage.getItem('ia_name');
+  if (email && name) {
+    currentUserEmail = email;
+    currentUserName = name;
+    bootApp();
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('ia_email');
+  sessionStorage.removeItem('ia_name');
+  document.getElementById('appContainer').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  currentUserEmail = '';
+  currentUserName = '';
+}
+
 // ── State ──────────────────────────────────────────────
 let role = 'user';
 let selectedMyId = null;
@@ -586,3 +657,6 @@ function getSampleData() {
     }
   ];
 }
+
+// Check existing session on load
+checkSession();
