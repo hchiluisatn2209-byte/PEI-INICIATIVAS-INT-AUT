@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciativas de Automatización IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- MODAL CONFIG -->
+  <div id="configModal" class="modal-backdrop" style="display:none" role="dialog" aria-modal="true" aria-labelledby="configTitle">
+    <div class="modal">
+      <h2 id="configTitle">Configurar Google Sheets</h2>
+      <p class="modal-desc">Ingresa la URL de tu Apps Script publicado y tu usuario para sincronizar las iniciativas.</p>
+      <div class="field">
+        <label for="scriptUrl">URL del Apps Script</label>
+        <input type="url" id="scriptUrl" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      <div class="field">
+        <label for="currentUser">Tu correo / usuario</label>
+        <input type="text" id="currentUser" placeholder="tu@empresa.com">
+      </div>
+      <div class="modal-hint">
+        <i class="ti ti-info-circle"></i>
+        El script debe exponer <code>doPost</code> para escritura y <code>doGet</code> para lectura. Ver <code>apps-script.js</code> incluido en el repositorio.
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeConfig()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveConfig()">Guardar configuración</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYOUT -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="ti ti-sparkles"></i></div>
+      <div>
+        <div class="brand-name">AutoIA</div>
+        <div class="brand-sub">Proyectos Especiales</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="register" onclick="showTab('register')">
+        <i class="ti ti-plus"></i> Nueva iniciativa
+      </button>
+      <button class="nav-item" data-tab="my" onclick="showTab('my')">
+        <i class="ti ti-list-check"></i> Mis iniciativas
+      </button>
+      <div class="nav-divider" id="adminDivider" style="display:none">
+        <span>Proyectos Especiales</span>
+      </div>
+      <button class="nav-item admin-only" data-tab="queue" onclick="showTab('queue')" style="display:none">
+        <i class="ti ti-inbox"></i> Cola de análisis
+      </button>
+      <button class="nav-item admin-only" data-tab="dashboard" onclick="showTab('dashboard')" style="display:none">
+        <i class="ti ti-chart-bar"></i> Dashboard
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="role-selector">
+        <label for="roleSelect"><i class="ti ti-shield-half"></i> Rol activo</label>
+        <select id="roleSelect" onchange="switchRole()">
+          <option value="user">Solicitante</option>
+          <option value="admin">Proyectos Especiales</option>
+        </select>
+      </div>
+      <button class="btn-ghost" onclick="openConfig()">
+        <i class="ti ti-settings"></i> Configurar Sheets
+      </button>
+    </div>
+  </aside>
+
+  <main class="main" id="mainContent">
+
+    <!-- NUEVA INICIATIVA -->
+    <section id="sec-register" class="section active">
+      <div class="page-header">
+        <div>
+          <h1>Nueva iniciativa</h1>
+          <p>Registra un proceso que puede beneficiarse de automatización con IA.</p>
+        </div>
+      </div>
+
+      <div id="configBanner" class="banner banner-warning">
+        <i class="ti ti-alert-triangle"></i>
+        Google Sheets no está configurado. Los datos se guardarán localmente.
+        <button class="btn-link" onclick="openConfig()">Configurar ahora</button>
+      </div>
+
+      <form id="initiativeForm" class="form-card" onsubmit="return false">
+        <div class="form-section-title">Información del solicitante</div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="f-name">Nombre completo <span class="req">*</span></label>
+            <input type="text" id="f-name" placeholder="Ej: María López">
+          </div>
+          <div class="field">
+            <label for="f-area">Área / Departamento <span class="req">*</span></label>
+            <select id="f-area">
+              <option value="">Seleccionar área</option>
+              <option>Operaciones</option>
+              <option>Finanzas</option>
+              <option>Recursos Humanos</option>
+              <option>Comercial / Ventas</option>
+              <option>TI / Tecnología</option>
+              <option>Atención al Cliente</option>
+              <option>Legal / Cumplimiento</option>
+              <option>Logística</option>
+              <option>Otra</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">Descripción de la iniciativa</div>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="f-title">Nombre de la iniciativa <span class="req">*</span></label>
+            <input type="text" id="f-title" placeholder="Ej: Automatización de conciliación bancaria mensual">
+          </div>
+          <div class="field full">
+            <label for="f-desc">Proceso actual <span class="req">*</span></label>
+            <textarea id="f-desc" rows="3" placeholder="¿Qué proceso quieres automatizar? Describe cómo se realiza hoy, quién lo hace y con qué herramientas..."></textarea>
+          </div>
+          <div class="field full">
+            <label for="f-expected">Resultado esperado <span class="req">*</span></label>
+            <textarea id="f-expected" rows="3" placeholder="¿Qué beneficio concreto esperas? Ej: reducir tiempo de 4 horas a 15 minutos, eliminar errores manuales, liberar al equipo para tareas estratégicas..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-section-title">Datos de contexto</div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="f-impact">Impacto estimado <span class="req">*</span></label>
+            <select id="f-impact">
+              <option value="">Seleccionar</option>
+              <option value="high">Alto — afecta toda el área o empresa</option>
+              <option value="med">Medio — mejora un proceso clave</option>
+              <option value="low">Bajo — optimiza tarea puntual</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-freq">Frecuencia del proceso</label>
+            <select id="f-freq">
+              <option value="">Seleccionar</option>
+              <option>Diaria</option>
+              <option>Semanal</option>
+              <option>Quincenal</option>
+              <option>Mensual</option>
+              <option>Bajo demanda</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-hours">Horas actuales por ejecución</label>
+            <input type="number" id="f-hours" placeholder="Ej: 4" min="0" step="0.5">
+          </div>
+          <div class="field">
+            <label for="f-people">Personas involucradas</label>
+            <input type="number" id="f-people" placeholder="Ej: 3" min="1">
+          </div>
+          <div class="field full">
+            <label for="f-systems">Sistemas / herramientas involucradas</label>
+            <input type="text" id="f-systems" placeholder="Ej: SAP, Excel, correo Outlook, portal web...">
+          </div>
+          <div class="field full">
+            <label for="f-notes">Notas adicionales o contexto</label>
+            <textarea id="f-notes" rows="2" placeholder="Cualquier detalle adicional que ayude al análisis..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn" onclick="saveDraft()">
+            <i class="ti ti-device-floppy"></i> Guardar borrador
+          </button>
+          <button type="button" class="btn btn-primary" onclick="submitInitiative()">
+            <i class="ti ti-send"></i> Enviar a Proyectos Especiales
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- MIS INICIATIVAS -->
+    <section id="sec-my" class="section">
+      <div class="page-header">
+        <div>
+          <h1>Mis iniciativas</h1>
+          <p>Historial de tus requerimientos enviados y sus avances.</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select id="filter-status" onchange="renderMyList()">
+          <option value="">Todos los estados</option>
+          <option value="draft">Borrador</option>
+          <option value="sent">Enviado</option>
+          <option value="analysis">En análisis</option>
+          <option value="dev">En desarrollo</option>
+          <option value="done">Completado</option>
+          <option value="rejected">Rechazado</option>
+        </select>
+        <select id="filter-impact" onchange="renderMyList()">
+          <option value="">Todo impacto</option>
+          <option value="high">Alto</option>
+          <option value="med">Medio</option>
+          <option value="low">Bajo</option>
+        </select>
+      </div>
+      <div class="list-detail-layout">
+        <div id="my-list" class="item-list"></div>
+        <div id="my-detail" class="detail-pane"></div>
+      </div>
+    </section>
+
+    <!-- COLA -->
+    <section id="sec-queue" class="section">
+      <div class="page-header">
+        <div>
+          <h1>Cola de análisis</h1>
+          <p>Iniciativas recibidas. Ordenadas por impacto. Cambia estado y agrega notas de avance.</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select id="q-filter-status" onchange="renderQueue()">
+          <option value="">Todos los estados</option>
+          <option value="sent">Enviado</option>
+          <option value="analysis">En análisis</option>
+          <option value="dev">En desarrollo</option>
+          <option value="done">Completado</option>
+          <option value="rejected">Rechazado</option>
+        </select>
+        <select id="q-filter-impact" onchange="renderQueue()">
+          <option value="">Todo impacto</option>
+          <option value="high">Alto</option>
+          <option value="med">Medio</option>
+          <option value="low">Bajo</option>
+        </select>
+        <select id="q-filter-area" onchange="renderQueue()">
+          <option value="">Todas las áreas</option>
+        </select>
+      </div>
+      <div class="list-detail-layout">
+        <div id="queue-list" class="item-list"></div>
+        <div id="queue-detail" class="detail-pane"></div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="sec-dashboard" class="section">
+      <div class="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Vista general de todas las iniciativas y métricas de avance.</p>
+        </div>
+      </div>
+      <div id="stats-grid" class="stats-grid"></div>
+      <div class="dashboard-lower">
+        <div id="area-chart" class="dash-card"></div>
+        <div id="status-chart" class="dash-card"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
