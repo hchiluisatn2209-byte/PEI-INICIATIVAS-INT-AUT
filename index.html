@@ -145,12 +145,21 @@
             <input type="text" id="f-name" placeholder="Ej: María López">
           </div>
           <div class="field">
-            <label for="f-area">Equipo <span class="req">*</span></label>
+            <label for="f-email">Correo electrónico</label>
+            <input type="email" id="f-email" readonly style="background:var(--surface-0);color:var(--text-secondary);cursor:default">
+          </div>
+          <div class="field">
+            <label for="f-area">Área / Departamento <span class="req">*</span></label>
             <select id="f-area">
-              <option value="">Seleccionar equipo</option>
-              <option>Planificación</option>
-              <option>Implementación</option>
-              <option>O&M</option>
+              <option value="">Seleccionar área</option>
+              <option>Operaciones</option>
+              <option>Finanzas</option>
+              <option>Recursos Humanos</option>
+              <option>Comercial / Ventas</option>
+              <option>TI / Tecnología</option>
+              <option>Atención al Cliente</option>
+              <option>Legal / Cumplimiento</option>
+              <option>Logística</option>
               <option>Otra</option>
             </select>
           </div>
@@ -204,7 +213,7 @@
           </div>
           <div class="field full">
             <label for="f-systems">Sistemas / herramientas involucradas</label>
-            <input type="text" id="f-systems" placeholder="Ej: Telcos, Excel, correo Outlook, portal web...">
+            <input type="text" id="f-systems" placeholder="Ej: SAP, Excel, correo Outlook, portal web...">
           </div>
           <div class="field full">
             <label for="f-notes">Notas adicionales o contexto</label>
