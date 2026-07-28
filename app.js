@@ -176,6 +176,18 @@ function saveDraftEdit(id, andSend) {
   setMyDetail(id);
 }
 
+// Envía datos via GET (sin CORS preflight) usando Image beacon
+function sendToSheetsViaGet(payload) {
+  return new Promise(function(resolve) {
+    const url = scriptUrl + '?payload=' + encodeURIComponent(JSON.stringify(payload));
+    const img = new Image();
+    img.onload = img.onerror = function() { resolve(); };
+    img.src = url;
+    // Fallback timeout
+    setTimeout(resolve, 3000);
+  });
+}
+
 async function exportAllToSheets() {
   if (!scriptUrl) { toast('Configura primero la URL de Google Sheets'); return; }
   const btn = document.getElementById('exportBtn');
@@ -187,17 +199,13 @@ async function exportAllToSheets() {
       if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-upload"></i> Exportar todo a Sheets'; }
       return;
     }
-    // Send each initiative individually with no-cors to avoid CORS preflight block
+    // Send one by one via GET beacon (no CORS issues)
     for (let idx = 0; idx < toExport.length; idx++) {
-      await fetch(scriptUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(toExport[idx])
-      });
+      await sendToSheetsViaGet(toExport[idx]);
     }
     toast('✓ ' + toExport.length + ' iniciativas enviadas a Google Sheets');
   } catch (e) {
-    toast('Error de conexión con Google Sheets');
+    toast('Error al exportar');
     console.error(e);
   }
   if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-upload"></i> Exportar todo a Sheets'; }
@@ -206,12 +214,7 @@ async function exportAllToSheets() {
 async function syncToSheets(init) {
   if (!scriptUrl) return;
   try {
-    // no-cors: data arrives at Apps Script, response is opaque (unreadable) - that is fine
-    await fetch(scriptUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(init)
-    });
+    await sendToSheetsViaGet(init);
   } catch (e) { console.warn('Sheets sync failed:', e); }
 }
 
