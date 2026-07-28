@@ -182,17 +182,20 @@ async function exportAllToSheets() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Exportando...'; }
   try {
     const toExport = initiatives.filter(i => i.status !== 'draft');
-    if (!toExport.length) { toast('No hay iniciativas enviadas para exportar'); if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-upload"></i> Exportar todo a Sheets';} return; }
-    // Send in chunks of 20 via GET to avoid URL length limits
-    const chunk = toExport.slice(0, 20);
-    const url = scriptUrl + '?action=export&data=' + encodeURIComponent(JSON.stringify(chunk));
-    const resp = await fetch(url);
-    const result = await resp.json();
-    if (result.success) {
-      toast('✓ ' + toExport.length + ' iniciativas exportadas a Google Sheets');
-    } else {
-      toast('Error: ' + (result.error || 'desconocido'));
+    if (!toExport.length) {
+      toast('No hay iniciativas enviadas para exportar');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-upload"></i> Exportar todo a Sheets'; }
+      return;
     }
+    // Send each initiative individually with no-cors to avoid CORS preflight block
+    for (let idx = 0; idx < toExport.length; idx++) {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(toExport[idx])
+      });
+    }
+    toast('✓ ' + toExport.length + ' iniciativas enviadas a Google Sheets');
   } catch (e) {
     toast('Error de conexión con Google Sheets');
     console.error(e);
@@ -203,9 +206,12 @@ async function exportAllToSheets() {
 async function syncToSheets(init) {
   if (!scriptUrl) return;
   try {
-    // Use GET with encoded param to avoid CORS preflight
-    const url = scriptUrl + '?action=export&data=' + encodeURIComponent(JSON.stringify([init]));
-    await fetch(url, { method: 'GET' });
+    // no-cors: data arrives at Apps Script, response is opaque (unreadable) - that is fine
+    await fetch(scriptUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(init)
+    });
   } catch (e) { console.warn('Sheets sync failed:', e); }
 }
 
