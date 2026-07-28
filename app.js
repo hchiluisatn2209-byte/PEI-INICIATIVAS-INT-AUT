@@ -336,6 +336,48 @@ function renderDashboard() {
 }
 
 // ── HTML builders ─────────────────────────────────────────
+
+// PM list
+const PM_LIST = [
+  'ADATTY GALLEGOS VICTORIA SALOME',
+  'ALBARRACIN GAVILANEZ JUAN FRANCISCO',
+  'BAEZ MALDONADO ANDRES FERNANDO',
+  'CAMPOVERDE ROBLES MARIA GABRIELA',
+  'CORREA ROJAS JULIO CESAR',
+  'EDUARDO FABIAN CORRALES ALBAN',
+  'GARCIA TOSCANO STALIN ALFONSO',
+  'JOSE ANTONIO COELLAR MACIAS',
+  'OSCAR XAVIER CASTILLO QUIMIS',
+  'PALACIOS FLORES JOSE EDUARDO',
+  'PURUNCAJAS MANZANO RICARDO FERNANDO',
+  'SACOTTO RUBIO EDWIN SANTIAGO',
+  'SALINAS TAMAYO FAUSTO DANIEL',
+  'SAMBRANO VELASCO JOHANNA OLIVIA'
+];
+
+function pmOptions(selected) {
+  return '<option value="">— Sin asignar —</option>' +
+    PM_LIST.map(function(p) {
+      return '<option value="' + p + '"' + (selected === p ? ' selected' : '') + '>' + p + '</option>';
+    }).join('');
+}
+
+function assignPM(id) {
+  const sel = document.getElementById('pm-select-' + id);
+  if (!sel) return;
+  const i = initiatives.find(x => x.id === id);
+  if (!i) return;
+  i.pm = sel.value;
+  if (i.pm) {
+    i.updates = i.updates || [];
+    i.updates.push({ date: today(), author: 'Automatizaciones', msg: 'PM / Responsable asignado: ' + i.pm });
+  }
+  persist();
+  toast('PM actualizado');
+  setQueueDetail(id);
+  renderQueueList();
+}
+
 function cardInner(i, showUser) {
   return '<div class="ic-top"><div class="ic-title">' + esc(i.title) + '</div><span class="badge ' + STATUS_BADGE[i.status] + '">' + STATUS_LABEL[i.status] + '</span></div>' +
     '<div class="ic-meta">' +
@@ -376,6 +418,7 @@ function detailHTML(i, isAdmin) {
       '<div class="detail-row"><span class="detail-label">Horas / ejecución</span><span class="detail-value">' + (i.hours ? i.hours + 'h' : '—') + '</span></div>' +
       '<div class="detail-row"><span class="detail-label">Personas involucradas</span><span class="detail-value">' + (i.people || '—') + '</span></div>' +
       '<div class="detail-row"><span class="detail-label">Sistemas</span><span class="detail-value">' + esc(i.systems || '—') + '</span></div>' +
+      '<div class="detail-row"><span class="detail-label">PM / Responsable</span><span class="detail-value">' + esc(i.pm || '—') + '</span></div>' +
       '<div class="detail-block"><span class="detail-label">Proceso actual</span><div class="detail-value">' + esc(i.desc || '—') + '</div></div>' +
       '<div class="detail-block"><span class="detail-label">Resultado esperado</span><div class="detail-value">' + esc(i.expected || '—') + '</div></div>' +
       (i.notes ? '<div class="detail-block"><span class="detail-label">Notas adicionales</span><div class="detail-value">' + esc(i.notes) + '</div></div>' : '') +
@@ -385,6 +428,14 @@ function detailHTML(i, isAdmin) {
     (isAdmin ?
     '<div class="admin-controls">' +
       '<div class="admin-controls-title">Gestión · Automatizaciones</div>' +
+      '<div class="pm-assign-row">' +
+        '<label class="pm-label"><i class="ti ti-user-check"></i> PM / Responsable a cargo</label>' +
+        '<div class="pm-row">' +
+          '<select id="pm-select-' + i.id + '" class="pm-select">' + pmOptions(i.pm) + '</select>' +
+          '<button class="btn btn-sm" onclick="assignPM(\'' + i.id + '\')">Asignar</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="status-section-title">Cambiar estado</div>' +
       '<div class="status-buttons">' + statusActions + '</div>' +
       '<div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Agregar nota de avance</div>' +
       '<div class="comment-form">' +
