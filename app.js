@@ -27,6 +27,7 @@ function toDb(i) {
     id: i.id,
     created: i.created,
     name: i.name,
+    email: i.email || '',
     area: i.area,
     title: i.title,
     descripcion: i.desc,
@@ -48,6 +49,7 @@ function fromDb(row) {
     id: row.id,
     created: row.created,
     name: row.name,
+    email: row.email || '',
     area: row.area,
     title: row.title,
     desc: row.descripcion,
@@ -138,9 +140,11 @@ async function bootApp() {
   document.getElementById('userEmail').textContent = currentUserEmail;
   document.getElementById('roleSelect').disabled = true;
 
-  // Pre-fill name field with user name
+  // Pre-fill name and email fields with Google account data
   const nameField = document.getElementById('f-name');
   if (nameField && currentUserName) nameField.value = currentUserName;
+  const emailField = document.getElementById('f-email');
+  if (emailField && currentUserEmail) emailField.value = currentUserEmail;
 
   switchRole();
   if (isAdmin) showTab('queue');
@@ -252,6 +256,7 @@ function saveConfig() {
 function collectForm() {
   return {
     name:     document.getElementById('f-name').value.trim(),
+    email:    document.getElementById('f-email') ? document.getElementById('f-email').value.trim() : currentUserEmail,
     area:     document.getElementById('f-area').value,
     title:    document.getElementById('f-title').value.trim(),
     desc:     document.getElementById('f-desc').value.trim(),
@@ -623,6 +628,7 @@ function detailHTML(i, isAdmin) {
     '</div>' +
     '<div class="detail-body">' +
       '<div class="detail-row"><span class="detail-label">Solicitante</span><span class="detail-value">' + esc(i.name) + '</span></div>' +
+      '<div class="detail-row"><span class="detail-label">Correo</span><span class="detail-value">' + esc(i.email || '—') + '</span></div>' +
       '<div class="detail-row"><span class="detail-label">Área</span><span class="detail-value">' + esc(i.area || '—') + '</span></div>' +
       '<div class="detail-row"><span class="detail-label">Impacto estimado</span><span class="detail-value"><span class="impact-pill ' + (IMPACT_CLASS[i.impact] || '') + '">' + (IMPACT_LABEL[i.impact] || '—') + '</span></span></div>' +
       '<div class="detail-row"><span class="detail-label">Frecuencia</span><span class="detail-value">' + esc(i.freq || '—') + '</span></div>' +
