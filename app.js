@@ -411,7 +411,12 @@ function getFiltered(statusId, impactId, areaId) {
 function renderMyList() {
   const fs = document.getElementById('filter-status').value;
   const fi = document.getElementById('filter-impact').value;
-  const list = getFiltered(fs, fi, null);
+  // Filter by current user email OR name (for backwards compat with old records)
+  let list = getFiltered(fs, fi, null).filter(i => {
+    if (currentUserEmail && i.email) return i.email === currentUserEmail;
+    if (currentUserName && i.name) return i.name === currentUserName;
+    return true;
+  });
   const el = document.getElementById('my-list');
 
   if (!list.length) {
