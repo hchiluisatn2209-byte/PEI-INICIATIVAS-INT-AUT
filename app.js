@@ -1,3 +1,93 @@
+// ── Supabase config ───────────────────────────────────
+const SUPABASE_URL = 'https://btuuqzymfkkupccrzeob.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_vu50B6-4HdmAOLwtFYvECw_WCNSsVMc';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || '',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// Map app fields to DB columns
+function toDb(i) {
+  return {
+    id: i.id,
+    created: i.created,
+    name: i.name,
+    area: i.area,
+    title: i.title,
+    descripcion: i.desc,
+    expected: i.expected,
+    impact: i.impact,
+    freq: i.freq,
+    hours: i.hours || '',
+    people: i.people || '',
+    systems: i.systems || '',
+    notes: i.notes || '',
+    status: i.status,
+    pm: i.pm || '',
+    updates: i.updates || []
+  };
+}
+
+function fromDb(row) {
+  return {
+    id: row.id,
+    created: row.created,
+    name: row.name,
+    area: row.area,
+    title: row.title,
+    desc: row.descripcion,
+    expected: row.expected,
+    impact: row.impact,
+    freq: row.freq,
+    hours: row.hours,
+    people: row.people,
+    systems: row.systems,
+    notes: row.notes,
+    status: row.status,
+    pm: row.pm,
+    updates: row.updates || []
+  };
+}
+
+async function saveToSupabase(initiative) {
+  try {
+    await sbFetch('iniciativas', {
+      method: 'POST',
+      prefer: 'resolution=merge-duplicates',
+      headers: { 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(toDb(initiative))
+    });
+  } catch(e) { console.warn('Supabase save error:', e); }
+}
+
+async function loadFromSupabase() {
+  try {
+    const rows = await sbFetch('iniciativas?order=inserted_at.asc');
+    return rows.map(fromDb);
+  } catch(e) { console.warn('Supabase load error:', e); return null; }
+}
+
+async function deleteFromSupabase(id) {
+  try {
+    await sbFetch('iniciativas?id=eq.' + id, { method: 'DELETE' });
+  } catch(e) { console.warn('Supabase delete error:', e); }
+}
+
 // ── Auth ──────────────────────────────────────────────
 const ADMIN_EMAILS = [
   'bnuneztn0904@gmail.com',
@@ -22,7 +112,17 @@ function handleGoogleLogin(response) {
   bootApp();
 }
 
-function bootApp() {
+async function bootApp() {
+  // Show loading
+  document.getElementById('loginScreen').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px"><div style="font-size:32px">⏳</div><p style="color:#6b7280">Cargando iniciativas...</p></div>';
+
+  // Load from Supabase
+  const remote = await loadFromSupabase();
+  if (remote && remote.length > 0) {
+    initiatives = remote;
+    persist(); // sync to localStorage as cache
+  }
+
   // Hide login, show app
   document.getElementById('loginScreen').style.display = 'none';
   const app = document.getElementById('appContainer');
@@ -36,16 +136,13 @@ function bootApp() {
   document.getElementById('roleSelect').value = role;
   document.getElementById('userDisplay').textContent = currentUserName;
   document.getElementById('userEmail').textContent = currentUserEmail;
-  document.getElementById('roleSelect').disabled = true; // lock role
+  document.getElementById('roleSelect').disabled = true;
 
-  // Pre-fill name field with user's name
+  // Pre-fill name field with user name
   const nameField = document.getElementById('f-name');
   if (nameField && currentUserName) nameField.value = currentUserName;
 
-  // Show admin tabs if needed
   switchRole();
-
-  // Show appropriate default tab
   if (isAdmin) showTab('queue');
   else showTab('my');
 }
@@ -184,7 +281,7 @@ function validate(init, full) {
 }
 
 // ── Submit / Draft ───────────────────────────────────────
-function saveDraft() {
+async function saveDraft() {
   const init = collectForm();
   if (!validate(init, false)) return;
   init.status = 'draft';
@@ -193,11 +290,12 @@ function saveDraft() {
   init.updates = [];
   initiatives.push(init);
   persist();
+  await saveToSupabase(init);
   clearForm();
   toast('Borrador guardado');
 }
 
-function submitInitiative() {
+async function submitInitiative() {
   const init = collectForm();
   if (!validate(init, true)) return;
   init.status = 'sent';
@@ -206,13 +304,13 @@ function submitInitiative() {
   init.updates = [{ date: today(), author: 'Sistema', msg: 'Iniciativa enviada a Automatizaciones para revisión y análisis.' }];
   initiatives.push(init);
   persist();
-  if (scriptUrl) syncToSheets(init);
+  await saveToSupabase(init);
   clearForm();
   toast('Iniciativa enviada exitosamente');
 }
 
 // Guardar edición de borrador (desde panel detalle)
-function saveDraftEdit(id, andSend) {
+async function saveDraftEdit(id, andSend) {
   const i = initiatives.find(x => x.id === id);
   if (!i) return;
 
@@ -237,10 +335,11 @@ function saveDraftEdit(id, andSend) {
     i.updates = i.updates || [];
     i.updates.push({ date: today(), author: 'Sistema', msg: 'Iniciativa enviada a Automatizaciones para revisión y análisis.' });
     persist();
-    if (scriptUrl) syncToSheets(i);
+    await saveToSupabase(i);
     toast('Iniciativa enviada exitosamente');
   } else {
     persist();
+    await saveToSupabase(i);
     toast('Borrador actualizado');
   }
   renderMyList();
@@ -259,24 +358,20 @@ function sendToSheetsViaGet(payload) {
   });
 }
 
-function exportAllToSheets() {
+async function exportAllToSheets() {
   const toExport = initiatives.filter(i => i.status !== 'draft');
-  if (!toExport.length) { toast('No hay iniciativas enviadas para exportar'); return; }
-  const json = JSON.stringify(toExport, null, 2);
-  navigator.clipboard.writeText(json).then(function() {
-    toast('✓ JSON copiado (' + toExport.length + ' iniciativas) — pégalo en Apps Script');
-    showCopyInstructions();
-  }).catch(function() {
-    // Fallback for browsers that block clipboard
-    const ta = document.createElement('textarea');
-    ta.value = json;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    toast('✓ JSON copiado (' + toExport.length + ' iniciativas) — pégalo en Apps Script');
-    showCopyInstructions();
-  });
+  if (!toExport.length) { toast('No hay iniciativas para sincronizar'); return; }
+  const btn = document.getElementById('exportBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Sincronizando...'; }
+  try {
+    for (const init of toExport) {
+      await saveToSupabase(init);
+    }
+    toast('✓ ' + toExport.length + ' iniciativas sincronizadas con Supabase');
+  } catch(e) {
+    toast('Error al sincronizar');
+  }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-refresh"></i> Sincronizar con Supabase'; }
 }
 
 function showCopyInstructions() {
@@ -388,7 +483,7 @@ function clearQueueDetail() {
 }
 
 // ── Admin actions ────────────────────────────────────────
-function changeStatus(id, newStatus) {
+async function changeStatus(id, newStatus) {
   const i = initiatives.find(x => x.id === id);
   if (!i) return;
   const prev = i.status;
@@ -396,12 +491,13 @@ function changeStatus(id, newStatus) {
   i.updates = i.updates || [];
   i.updates.push({ date: today(), author: 'Automatizaciones', msg: 'Estado actualizado: ' + STATUS_LABEL[prev] + ' → ' + STATUS_LABEL[newStatus] });
   persist();
+  await saveToSupabase(i);
   toast('Estado actualizado a: ' + STATUS_LABEL[newStatus]);
   renderQueueList();
   setQueueDetail(id);
 }
 
-function addComment(id) {
+async function addComment(id) {
   const input = document.getElementById('comment-' + id);
   if (!input || !input.value.trim()) { toast('Escribe una nota'); return; }
   const i = initiatives.find(x => x.id === id);
@@ -409,6 +505,7 @@ function addComment(id) {
   i.updates = i.updates || [];
   i.updates.push({ date: today(), author: 'Automatizaciones', msg: input.value.trim() });
   persist();
+  await saveToSupabase(i);
   toast('Nota agregada');
   input.value = '';
   setQueueDetail(id);
@@ -475,7 +572,7 @@ function pmOptions(selected) {
     }).join('');
 }
 
-function assignPM(id) {
+async function assignPM(id) {
   const sel = document.getElementById('pm-select-' + id);
   if (!sel) return;
   const i = initiatives.find(x => x.id === id);
@@ -486,6 +583,7 @@ function assignPM(id) {
     i.updates.push({ date: today(), author: 'Automatizaciones', msg: 'PM / Responsable asignado: ' + i.pm });
   }
   persist();
+  await saveToSupabase(i);
   toast('PM actualizado');
   setQueueDetail(id);
   renderQueueList();
