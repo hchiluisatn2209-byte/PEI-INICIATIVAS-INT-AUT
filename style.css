@@ -328,6 +328,30 @@ textarea { resize: vertical; line-height: 1.6; }
 .admin-controls + .admin-controls {
   border-top: 1px solid var(--border-strong);
 }
+
+.draft-edit-form { background: #fffbeb; border-top: 1px solid #fde68a; }
+.draft-edit-form .admin-controls-title { color: #92400e; }
+
+.draft-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.draft-grid .field.draft-full { grid-column: 1 / -1; }
+
+.draft-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #fde68a;
+}
+
+@media (max-width: 768px) {
+  .draft-grid { grid-template-columns: 1fr; }
+  .draft-grid .field.draft-full { grid-column: auto; }
+}
 .admin-controls-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
 .status-buttons { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
 
