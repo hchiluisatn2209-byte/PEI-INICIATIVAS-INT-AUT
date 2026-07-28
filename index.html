@@ -8,8 +8,36 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link rel="stylesheet" href="style.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-icon"><i class="ti ti-sparkles"></i></div>
+      <h1>Iniciativas Proyectos Corporativos</h1>
+      <p>Inicia sesión con tu cuenta Google para continuar</p>
+      <div id="g_id_onload"
+        data-client_id="854110005645-q48g3aoudtps1kr8e3k60k6rdkio7ji9.apps.googleusercontent.com"
+        data-callback="handleGoogleLogin"
+        data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-text="signin_with"
+        data-shape="rectangular"
+        data-logo_alignment="left"
+        data-width="300">
+      </div>
+      <p class="login-note">Solo usuarios autorizados pueden acceder</p>
+    </div>
+  </div>
+
+  <!-- APP (hidden until login) -->
+  <div id="appContainer" style="display:none;width:100%;min-height:100vh;display:none;flex-direction:row">
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -66,18 +94,28 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="role-selector">
+      <div class="role-selector" style="display:none">
         <label for="roleSelect"><i class="ti ti-shield-half"></i> Rol activo</label>
         <select id="roleSelect" onchange="switchRole()">
           <option value="user">Solicitante</option>
           <option value="admin">Automatizaciones</option>
         </select>
       </div>
+      <div class="user-info">
+        <div class="user-avatar"><i class="ti ti-user-circle"></i></div>
+        <div>
+          <div id="userDisplay" class="user-name"></div>
+          <div id="userEmail" class="user-email"></div>
+        </div>
+      </div>
       <button class="btn-ghost" onclick="openConfig()">
         <i class="ti ti-settings"></i> Configurar Sheets
       </button>
       <button class="btn-ghost" id="exportBtn" onclick="exportAllToSheets()">
         <i class="ti ti-copy"></i> Copiar JSON para Sheets
+      </button>
+      <button class="btn-ghost" onclick="logout()" style="color:var(--c-danger)">
+        <i class="ti ti-logout"></i> Cerrar sesión
       </button>
     </div>
   </aside>
@@ -289,6 +327,8 @@
       </div>
     </div>
   </div>
+
+  </div><!-- /appContainer -->
 
   <script src="app.js"></script>
 </body>
