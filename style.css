@@ -325,6 +325,9 @@ textarea { resize: vertical; line-height: 1.6; }
   background: var(--surface-1);
   border-top: 1px solid var(--border);
 }
+.admin-controls + .admin-controls {
+  border-top: 1px solid var(--border-strong);
+}
 .admin-controls-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
 .status-buttons { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
 
