@@ -143,6 +143,26 @@ function submitInitiative() {
   toast('Iniciativa enviada exitosamente');
 }
 
+function submitDraft(id) {
+  const i = initiatives.find(x => x.id === id);
+  if (!i) return;
+  if (!i.name || !i.area || !i.title || !i.desc || !i.expected || !i.impact) {
+    toast('El borrador tiene campos obligatorios incompletos. Edítalo desde Nueva iniciativa.');
+    return;
+  }
+  i.status = 'sent';
+  i.updates = i.updates || [];
+  i.updates.push({
+    date: today(),
+    author: 'Sistema',
+    msg: 'Iniciativa enviada a Automatizaciones para revisión y análisis.'
+  });
+  persist();
+  if (scriptUrl) syncToSheets(i);
+  toast('Iniciativa enviada exitosamente');
+  showMyDetail(id);
+}
+
 async function syncToSheets(init) {
   try {
     await fetch(scriptUrl, {
@@ -171,7 +191,11 @@ function renderMyList() {
   const fi = document.getElementById('filter-impact').value;
   const list = getFiltered(fs, fi);
   const el = document.getElementById('my-list');
-  document.getElementById('my-detail').innerHTML = emptyDetail();
+
+  // Only reset detail if no card is currently selected
+  if (!selectedId) {
+    document.getElementById('my-detail').innerHTML = emptyDetail();
+  }
 
   if (!list.length) {
     el.innerHTML = emptyState('ti-robot', 'No tienes iniciativas registradas.');
@@ -184,8 +208,8 @@ function showMyDetail(id) {
   selectedId = id;
   const i = initiatives.find(x => x.id === id);
   if (!i) return;
+  renderMyList(); // render list first (it resets detail), then set detail
   document.getElementById('my-detail').innerHTML = detailHTML(i, false);
-  renderMyList();
 }
 
 // ── Queue (admin) ────────────────────────────────────────
@@ -353,6 +377,13 @@ function detailHTML(i, isAdmin) {
         <input type="text" id="comment-${i.id}" placeholder="Describe el avance, decisión o pendiente...">
         <button class="btn btn-sm btn-primary" onclick="addComment('${i.id}')">Agregar</button>
       </div>
+    </div>` : ''}
+    ${!isAdmin && i.status === 'draft' ? `
+    <div class="admin-controls">
+      <div class="admin-controls-title">Este borrador aún no ha sido enviado</div>
+      <button class="btn btn-primary" onclick="submitDraft('${i.id}')">
+        <i class="ti ti-send"></i> Enviar a Automatizaciones
+      </button>
     </div>` : ''}
     <div class="timeline">
       <div class="timeline-title">Bitácora de avances</div>
