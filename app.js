@@ -136,8 +136,10 @@ async function bootApp() {
   app.style.display = 'flex';
 
   // Set role based on email
-  const isAdmin = ADMIN_EMAILS.includes(currentUserEmail.toLowerCase());
-  role = isAdmin ? 'admin' : 'user';
+  const emailLower = currentUserEmail.toLowerCase();
+  const isAdmin = ADMIN_EMAILS.includes(emailLower);
+  const isDev   = DEV_EMAILS.includes(emailLower);
+  role = isAdmin ? 'admin' : (isDev ? 'dev' : 'user');
 
   // Update UI
   document.getElementById('roleSelect').value = role;
@@ -153,6 +155,7 @@ async function bootApp() {
 
   switchRole();
   if (isAdmin) showTab('queue');
+  else if (isDev) showTab('devqueue');
   else showTab('my');
 }
 
