@@ -98,6 +98,10 @@ const ADMIN_EMAILS = [
   'cralarcontn1607@gmail.com'
 ];
 
+const DEV_EMAILS = [
+  'haydi06@gmail.com'
+];
+
 let currentUserEmail = '';
 let currentUserName = '';
 
@@ -187,11 +191,13 @@ if (!initiatives) {
 // ── Lookup maps ─────────────────────────────────────────
 const STATUS_LABEL = {
   draft: 'Borrador', sent: 'Enviado', analysis: 'En análisis',
-  dev: 'En desarrollo', done: 'Completado', rejected: 'Rechazado'
+  dev: 'Enviado a desarrollo', review: 'En revisión', pause: 'En pausa',
+  done: 'Completado', rejected: 'Rechazado'
 };
 const STATUS_BADGE = {
   draft: 'badge-draft', sent: 'badge-sent', analysis: 'badge-analysis',
-  dev: 'badge-dev', done: 'badge-done', rejected: 'badge-rejected'
+  dev: 'badge-dev', review: 'badge-review', pause: 'badge-pause',
+  done: 'badge-done', rejected: 'badge-rejected'
 };
 const IMPACT_LABEL = { high: 'Alto', med: 'Medio', low: 'Bajo' };
 const IMPACT_CLASS = { high: 'p-high', med: 'p-med', low: 'p-low' };
@@ -208,20 +214,27 @@ function showTab(id) {
   document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
   const navEl = document.querySelector('[data-tab="' + id + '"]');
   if (navEl) navEl.classList.add('active');
-  document.getElementById('sec-' + id).classList.add('active');
+  const sec = document.getElementById('sec-' + id);
+  if (sec) sec.classList.add('active');
 
   if (id === 'my')        { selectedMyId = null;    renderMyList();    clearMyDetail(); }
   if (id === 'queue')     { selectedQueueId = null; populateAreaFilter(); renderQueueList(); clearQueueDetail(); }
+  if (id === 'devqueue')  { selectedDevId = null;   renderDevQueue();  document.getElementById('devqueue-detail').innerHTML = emptyDetail(); }
   if (id === 'dashboard') { renderDashboard(); }
 }
 
 function switchRole() {
   role = document.getElementById('roleSelect').value;
   const adminEls = document.querySelectorAll('.admin-only');
+  const devEls = document.querySelectorAll('.dev-only');
   const adminDivider = document.getElementById('adminDivider');
+  const devDivider = document.getElementById('devDivider');
   adminEls.forEach(el => el.style.display = role === 'admin' ? 'flex' : 'none');
-  adminDivider.style.display = role === 'admin' ? 'block' : 'none';
+  devEls.forEach(el => el.style.display = role === 'dev' ? 'flex' : 'none');
+  if (adminDivider) adminDivider.style.display = role === 'admin' ? 'block' : 'none';
+  if (devDivider) devDivider.style.display = role === 'dev' ? 'block' : 'none';
   if (role === 'admin') showTab('queue');
+  else if (role === 'dev') showTab('devqueue');
   else showTab('my');
 }
 
@@ -498,6 +511,66 @@ function clearQueueDetail() {
   document.getElementById('queue-detail').innerHTML = emptyDetail();
 }
 
+// ── DEV QUEUE — list and detail fully decoupled ─────────
+let selectedDevId = null;
+
+function renderDevQueue() {
+  const list = initiatives.filter(i => ['dev','review','pause'].includes(i.status));
+  const el = document.getElementById('devqueue-list');
+  if (!el) return;
+  document.getElementById('devqueue-detail').innerHTML = emptyDetail();
+  selectedDevId = null;
+
+  if (!list.length) {
+    el.innerHTML = emptyState('ti-code', 'No hay iniciativas asignadas al equipo de desarrollo.');
+    return;
+  }
+  el.innerHTML = list.map(i => {
+    const sel = selectedDevId === i.id ? ' selected' : '';
+    return '<div class="initiative-card' + sel + '" onclick="onDevCardClick(\'' + i.id + '\')">' + cardInner(i, true) + '</div>';
+  }).join('');
+}
+
+function onDevCardClick(id) {
+  selectedDevId = id;
+  renderDevQueue();
+  setDevDetail(id);
+}
+
+function setDevDetail(id) {
+  const i = initiatives.find(x => x.id === id);
+  if (!i) return;
+  document.getElementById('devqueue-detail').innerHTML = detailHTML(i, false, true);
+}
+
+async function changeDevStatus(id, newStatus) {
+  const i = initiatives.find(x => x.id === id);
+  if (!i) return;
+  const prev = i.status;
+  i.status = newStatus;
+  i.updates = i.updates || [];
+  i.updates.push({ date: today(), author: 'Equipo Desarrollo', msg: 'Estado actualizado: ' + STATUS_LABEL[prev] + ' → ' + STATUS_LABEL[newStatus] });
+  persist();
+  await saveToSupabase(i);
+  toast('Estado actualizado a: ' + STATUS_LABEL[newStatus]);
+  renderDevQueue();
+  setDevDetail(id);
+}
+
+async function addDevComment(id) {
+  const input = document.getElementById('devcomment-' + id);
+  if (!input || !input.value.trim()) { toast('Escribe una nota'); return; }
+  const i = initiatives.find(x => x.id === id);
+  if (!i) return;
+  i.updates = i.updates || [];
+  i.updates.push({ date: today(), author: 'Equipo Desarrollo', msg: input.value.trim() });
+  persist();
+  await saveToSupabase(i);
+  toast('Nota agregada');
+  input.value = '';
+  setDevDetail(id);
+}
+
 // ── Admin actions ────────────────────────────────────────
 async function changeStatus(id, newStatus) {
   if (newStatus === 'rejected') {
@@ -509,10 +582,17 @@ async function changeStatus(id, newStatus) {
   const prev = i.status;
   i.status = newStatus;
   i.updates = i.updates || [];
-  i.updates.push({ date: today(), author: 'Automatizaciones', msg: 'Estado actualizado: ' + STATUS_LABEL[prev] + ' → ' + STATUS_LABEL[newStatus] });
+  const msg = newStatus === 'dev'
+    ? 'Iniciativa enviada al Equipo de Desarrollo para su gestión y seguimiento.'
+    : 'Estado actualizado: ' + STATUS_LABEL[prev] + ' → ' + STATUS_LABEL[newStatus];
+  i.updates.push({ date: today(), author: 'Automatizaciones', msg: msg });
   persist();
   await saveToSupabase(i);
-  toast('Estado actualizado a: ' + STATUS_LABEL[newStatus]);
+  if (newStatus === 'dev') {
+    toast('✓ Iniciativa enviada al Equipo de Desarrollo');
+  } else {
+    toast('Estado actualizado a: ' + STATUS_LABEL[newStatus]);
+  }
   renderQueueList();
   setQueueDetail(id);
 }
@@ -650,8 +730,8 @@ const PM_LIST = [
   'CAMPOVERDE ROBLES MARIA GABRIELA',
   'CORRALES ALBAN EDUARDO FABIAN',
   'GARCIA TOSCANO STALIN ALFONSO',
-  'COELLAR MACIAS JOSE ANTONIO',
-  'CASTILLO QUIMIS OSCAR XAVIER ',
+  'JOSE ANTONIO COELLAR MACIAS',
+  'OSCAR XAVIER CASTILLO QUIMIS',
   'PURUNCAJAS MANZANO RICARDO FERNANDO',
   'SACOTTO RUBIO EDWIN SANTIAGO',
   'SALINAS TAMAYO FAUSTO DANIEL',
@@ -693,7 +773,7 @@ function cardInner(i, showUser) {
     '</div>';
 }
 
-function detailHTML(i, isAdmin) {
+function detailHTML(i, isAdmin, isDev) {
   const statusActions = ['analysis','dev','done','rejected'].map(function(s) {
     return '<button class="btn btn-sm' + (i.status === s ? ' btn-primary' : '') + '" onclick="changeStatus(\'' + i.id + '\',\'' + s + '\')">' + STATUS_LABEL[s] + '</button>';
   }).join('');
@@ -748,6 +828,23 @@ function detailHTML(i, isAdmin) {
       '<div class="comment-form">' +
         '<input type="text" id="comment-' + i.id + '" placeholder="Describe el avance, decisión o pendiente...">' +
         '<button class="btn btn-sm btn-primary" onclick="addComment(\'' + i.id + '\')">Agregar</button>' +
+      '</div>' +
+    '</div>' : '') +
+
+    // DEV: estados de desarrollo + notas
+    (isDev ?
+    '<div class="admin-controls dev-controls">' +
+      '<div class="admin-controls-title"><i class="ti ti-code"></i> Gestión · Equipo de Desarrollo</div>' +
+      '<div class="status-section-title">Cambiar estado</div>' +
+      '<div class="status-buttons">' +
+        ['review','dev','pause','done','rejected'].map(function(s) {
+          return '<button class="btn btn-sm' + (i.status === s ? ' btn-primary' : '') + '" onclick="changeDevStatus(\'' + i.id + '\',\'' + s + '\')">' + STATUS_LABEL[s] + '</button>';
+        }).join('') +
+      '</div>' +
+      '<div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Agregar nota de avance</div>' +
+      '<div class="comment-form">' +
+        '<input type="text" id="devcomment-' + i.id + '" placeholder="Describe el avance, decisión o pendiente...">' +
+        '<button class="btn btn-sm btn-primary" onclick="addDevComment(\'' + i.id + '\')">Agregar</button>' +
       '</div>' +
     '</div>' : '') +
 
