@@ -677,3 +677,6 @@ textarea { resize: vertical; line-height: 1.6; }
 
 /* ─── V2: Enviado a desarrollo badge (orange tint) ─── */
 .badge-dev { background: #fff7ed; color: #c2410c; }
+
+/* ─── indev badge ─── */
+.badge-indev { background: var(--purple-lt); color: var(--purple); }
