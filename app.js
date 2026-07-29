@@ -597,18 +597,26 @@ function renderDashboard() {
   const rejected = initiatives.filter(i => i.status === 'rejected');
   const rejEl = document.getElementById('rejected-list');
   if (rejEl) {
-    rejEl.innerHTML = '<h3 style="margin-bottom:12px">Iniciativas rechazadas (' + rejected.length + ')</h3>' +
-      (rejected.length ? rejected.map(function(i) {
-        const reason = (i.updates || []).filter(u => u.msg.includes('Rechazada')).pop();
-        return '<div style="border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
-            '<strong style="font-size:14px">' + esc(i.title) + '</strong>' +
-            '<span style="font-size:12px;color:var(--text-muted)">' + i.created + '</span>' +
-          '</div>' +
-          '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px">' + esc(i.name) + ' · ' + esc(i.area || '') + '</div>' +
-          (reason ? '<div style="font-size:13px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:8px 10px;color:var(--c-danger);margin-top:6px"><i class="ti ti-ban"></i> ' + esc(reason.msg.replace('🚫 Rechazada. Motivo: ', '')) + '</div>' : '') +
-        '</div>';
-      }).join('') : '<p style="font-size:13px;color:var(--text-muted)">No hay iniciativas rechazadas.</p>');
+    rejEl.innerHTML =
+      '<div class="rejected-header" onclick="toggleRejected()">' +
+        '<h3>Iniciativas rechazadas (' + rejected.length + ')</h3>' +
+        '<button class="btn btn-sm" id="rejToggleBtn"><i class="ti ti-chevron-down"></i> Ver</button>' +
+      '</div>' +
+      '<div id="rejectedBody" style="display:none;margin-top:12px">' +
+        (rejected.length ? rejected.map(function(i) {
+          const reason = (i.updates || []).filter(u => u.msg.includes('Rechazada')).pop();
+          return '<div class="rej-card" onclick="showRejectedDetail(\'' + i.id + '\')">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">' +
+              '<strong style="font-size:14px">' + esc(i.title) + '</strong>' +
+              '<span style="font-size:12px;color:var(--text-muted);white-space:nowrap;margin-left:8px">' + i.created + '</span>' +
+            '</div>' +
+            '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px">' + esc(i.name) + ' · ' + esc(i.area || '') + (i.email ? ' · ' + esc(i.email) : '') + '</div>' +
+            (reason ? '<div class="rej-reason"><i class="ti ti-ban"></i> ' + esc(reason.msg.replace('🚫 Rechazada. Motivo: ', '')) + '</div>' : '') +
+            '<div style="font-size:12px;color:var(--c-brand);margin-top:6px">Ver detalle completo →</div>' +
+          '</div>';
+        }).join('') : '<p style="font-size:13px;color:var(--text-muted)">No hay iniciativas rechazadas.</p>') +
+        '<div id="rejectedDetail" style="margin-top:12px"></div>' +
+      '</div>';
   }
 
   document.getElementById('status-chart').innerHTML = '<h3>Distribución por estado</h3>' +
@@ -827,6 +835,45 @@ function getSampleData() {
       ]
     }
   ];
+}
+
+function toggleRejected() {
+  const body = document.getElementById('rejectedBody');
+  const btn = document.getElementById('rejToggleBtn');
+  if (!body) return;
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? 'block' : 'none';
+  btn.innerHTML = isHidden ? '<i class="ti ti-chevron-up"></i> Ocultar' : '<i class="ti ti-chevron-down"></i> Ver';
+}
+
+function showRejectedDetail(id) {
+  const i = initiatives.find(x => x.id === id);
+  if (!i) return;
+  const el = document.getElementById('rejectedDetail');
+  if (!el) return;
+  const timeline = (i.updates || []).map(function(u) {
+    return '<div class="tl-item"><div class="tl-dot" style="background:' + (u.msg.includes('Rechazada') ? 'var(--c-danger)' : 'var(--c-brand)') + '"></div><div><div class="tl-text">' + esc(u.msg) + '</div><div class="tl-meta">' + esc(u.author) + ' · ' + u.date + '</div></div></div>';
+  }).join('');
+  el.innerHTML =
+    '<div style="border:1px solid var(--c-danger);border-radius:var(--radius-lg);overflow:hidden;margin-top:8px">' +
+      '<div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">' +
+        '<strong style="font-size:15px">' + esc(i.title) + '</strong>' +
+        '<span class="badge badge-rejected">Rechazado</span>' +
+      '</div>' +
+      '<div style="padding:16px 20px">' +
+        '<div class="detail-row"><span class="detail-label">Solicitante</span><span>' + esc(i.name) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Correo</span><span>' + esc(i.email || '—') + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Área</span><span>' + esc(i.area || '—') + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Impacto</span><span class="impact-pill ' + (IMPACT_CLASS[i.impact] || '') + '">' + (IMPACT_LABEL[i.impact] || '—') + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Frecuencia</span><span>' + esc(i.freq || '—') + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Sistemas</span><span>' + esc(i.systems || '—') + '</span></div>' +
+        '<div class="detail-block"><span class="detail-label">Proceso actual</span><div class="detail-value">' + esc(i.desc || '—') + '</div></div>' +
+        '<div class="detail-block"><span class="detail-label">Resultado esperado</span><div class="detail-value">' + esc(i.expected || '—') + '</div></div>' +
+      '</div>' +
+      '<div style="padding:16px 20px;border-top:1px solid var(--border)">' +
+        '<div class="timeline-title">Bitácora</div>' + timeline +
+      '</div>' +
+    '</div>';
 }
 
 // Check existing session on load
