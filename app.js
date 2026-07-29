@@ -515,7 +515,7 @@ function clearQueueDetail() {
 let selectedDevId = null;
 
 function renderDevQueue() {
-  const list = initiatives.filter(i => ['dev','review','pause'].includes(i.status));
+  const list = initiatives.filter(i => ['dev','review','pause','done'].includes(i.status));
   const el = document.getElementById('devqueue-list');
   if (!el) return;
   document.getElementById('devqueue-detail').innerHTML = emptyDetail();
@@ -774,7 +774,7 @@ function cardInner(i, showUser) {
 }
 
 function detailHTML(i, isAdmin, isDev) {
-  const statusActions = ['analysis','dev','done','rejected'].map(function(s) {
+  const statusActions = ['analysis','dev','rejected'].map(function(s) {
     return '<button class="btn btn-sm' + (i.status === s ? ' btn-primary' : '') + '" onclick="changeStatus(\'' + i.id + '\',\'' + s + '\')">' + STATUS_LABEL[s] + '</button>';
   }).join('');
 
@@ -815,13 +815,6 @@ function detailHTML(i, isAdmin, isDev) {
     (isAdmin ?
     '<div class="admin-controls">' +
       '<div class="admin-controls-title">Gestión · Automatizaciones</div>' +
-      '<div class="pm-assign-row">' +
-        '<label class="pm-label"><i class="ti ti-user-check"></i> PM / Responsable a cargo</label>' +
-        '<div class="pm-row">' +
-          '<select id="pm-select-' + i.id + '" class="pm-select">' + pmOptions(i.pm) + '</select>' +
-          '<button class="btn btn-sm" onclick="assignPM(\'' + i.id + '\')">Asignar</button>' +
-        '</div>' +
-      '</div>' +
       '<div class="status-section-title">Cambiar estado</div>' +
       '<div class="status-buttons">' + statusActions + '</div>' +
       '<div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Agregar nota de avance</div>' +
@@ -835,9 +828,16 @@ function detailHTML(i, isAdmin, isDev) {
     (isDev ?
     '<div class="admin-controls dev-controls">' +
       '<div class="admin-controls-title"><i class="ti ti-code"></i> Gestión · Equipo de Desarrollo</div>' +
+      '<div class="pm-assign-row">' +
+        '<label class="pm-label"><i class="ti ti-user-check"></i> PM / Responsable a cargo</label>' +
+        '<div class="pm-row">' +
+          '<select id="pm-select-' + i.id + '" class="pm-select">' + pmOptions(i.pm) + '</select>' +
+          '<button class="btn btn-sm" onclick="assignPM(\'' + i.id + '\')">Asignar</button>' +
+        '</div>' +
+      '</div>' +
       '<div class="status-section-title">Cambiar estado</div>' +
       '<div class="status-buttons">' +
-        ['review','dev','pause','done','rejected'].map(function(s) {
+        ['review','pause','done','rejected'].map(function(s) {
           return '<button class="btn btn-sm' + (i.status === s ? ' btn-primary' : '') + '" onclick="changeDevStatus(\'' + i.id + '\',\'' + s + '\')">' + STATUS_LABEL[s] + '</button>';
         }).join('') +
       '</div>' +
