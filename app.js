@@ -672,7 +672,7 @@ function renderDashboard() {
   document.getElementById('stats-grid').innerHTML =
     '<div class="stat-card"><div class="stat-num">' + all.length + '</div><div class="stat-lbl">Total enviadas</div></div>' +
     '<div class="stat-card"><div class="stat-num stat-success">' + (byStatus.done || 0) + '</div><div class="stat-lbl">Completadas</div></div>' +
-    '<div class="stat-card"><div class="stat-num stat-accent">' + ((byStatus.analysis || 0) + (byStatus.dev || 0)) + '</div><div class="stat-lbl">En progreso</div></div>' +
+    '<div class="stat-card"><div class="stat-num stat-accent">' + ((byStatus.analysis || 0) + (byStatus.dev || 0) + (byStatus.review || 0) + (byStatus.indev || 0) + (byStatus.pause || 0)) + '</div><div class="stat-lbl">En progreso</div></div>' +
     '<div class="stat-card"><div class="stat-num stat-warning">' + Math.round(totalHours) + '</div><div class="stat-lbl">Horas a automatizar</div></div>';
 
   const areaEntries = Object.entries(byArea).sort((a, b) => b[1] - a[1]);
