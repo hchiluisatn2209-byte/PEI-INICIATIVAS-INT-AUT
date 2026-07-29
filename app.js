@@ -669,10 +669,12 @@ function renderDashboard() {
     totalHours += parseFloat(i.hours) || 0;
   });
 
+  const inProgress = (byStatus.analysis||0)+(byStatus.dev||0)+(byStatus.review||0)+(byStatus.indev||0)+(byStatus.pause||0);
+
   document.getElementById('stats-grid').innerHTML =
     '<div class="stat-card"><div class="stat-num">' + all.length + '</div><div class="stat-lbl">Total enviadas</div></div>' +
-    '<div class="stat-card"><div class="stat-num stat-success">' + (byStatus.done || 0) + '</div><div class="stat-lbl">Completadas</div></div>' +
-    '<div class="stat-card"><div class="stat-num stat-accent">' + ((byStatus.analysis || 0) + (byStatus.dev || 0) + (byStatus.review || 0) + (byStatus.indev || 0) + (byStatus.pause || 0)) + '</div><div class="stat-lbl">En progreso</div></div>' +
+    '<div class="stat-card"><div class="stat-num stat-success">' + (byStatus.done||0) + '</div><div class="stat-lbl">Completadas</div></div>' +
+    '<div class="stat-card"><div class="stat-num stat-accent">' + inProgress + '</div><div class="stat-lbl">En progreso</div></div>' +
     '<div class="stat-card"><div class="stat-num stat-warning">' + Math.round(totalHours) + '</div><div class="stat-lbl">Horas a automatizar</div></div>';
 
   const areaEntries = Object.entries(byArea).sort((a, b) => b[1] - a[1]);
@@ -682,9 +684,46 @@ function renderDashboard() {
       return '<div class="bar-row"><div class="bar-label" title="' + e[0] + '">' + e[0] + '</div><div class="bar-track"><div class="bar-fill" style="width:' + Math.round(e[1]/maxA*100) + '%"></div></div><div class="bar-count">' + e[1] + '</div></div>';
     }).join('') : '<p style="font-size:13px;color:var(--text-muted)">Sin datos aún.</p>');
 
-  const statusOrder = ['sent','analysis','dev','done','rejected'];
+  // AUTOMATIZACIONES: estados del flujo de análisis
+  const statusOrderAuto = ['sent','analysis','dev','rejected'];
+  const maxA2 = Math.max(...statusOrderAuto.map(s => byStatus[s]||0), 1);
+  const colorsAuto = { sent:'#b45309', analysis:'#1a73c8', dev:'#c2410c', rejected:'#dc2626' };
+  document.getElementById('status-chart').innerHTML =
+    '<h3>Automatizaciones · por estado</h3>' +
+    (statusOrderAuto.filter(s => byStatus[s]).map(function(s) {
+      return '<div class="bar-row"><div class="bar-label">' + STATUS_LABEL[s] + '</div><div class="bar-track"><div class="bar-fill" style="width:' + Math.round((byStatus[s]||0)/maxA2*100) + '%;background:' + colorsAuto[s] + '"></div></div><div class="bar-count">' + (byStatus[s]||0) + '</div></div>';
+    }).join('') || '<p style="font-size:13px;color:var(--text-muted)">Sin datos aún.</p>');
+
+  // EQUIPO DESARROLLO: estados del flujo de desarrollo
+  const statusOrderDev = ['review','indev','pause','done'];
+  const maxD = Math.max(...statusOrderDev.map(s => byStatus[s]||0), 1);
+  const colorsDev = { review:'#0369a1', indev:'#5b2d8e', pause:'#854d0e', done:'#1b7a3e' };
+  const devEl = document.getElementById('dev-status-chart');
+  if (devEl) {
+    devEl.innerHTML =
+      '<h3>Equipo Desarrollo · por estado</h3>' +
+      (statusOrderDev.filter(s => byStatus[s]).map(function(s) {
+        return '<div class="bar-row"><div class="bar-label">' + STATUS_LABEL[s] + '</div><div class="bar-track"><div class="bar-fill" style="width:' + Math.round((byStatus[s]||0)/maxD*100) + '%;background:' + colorsDev[s] + '"></div></div><div class="bar-count">' + (byStatus[s]||0) + '</div></div>';
+      }).join('') || '<p style="font-size:13px;color:var(--text-muted)">Sin iniciativas en desarrollo aún.</p>');
+  }
+
+  // PM asignados en desarrollo
+  const pmEl = document.getElementById('pm-chart');
+  if (pmEl) {
+    const byPM = {};
+    initiatives.filter(i => i.pm && ['indev','review','pause'].includes(i.status))
+      .forEach(i => { byPM[i.pm] = (byPM[i.pm]||0)+1; });
+    const pmEntries = Object.entries(byPM).sort((a,b) => b[1]-a[1]);
+    const maxP = Math.max(...pmEntries.map(e=>e[1]),1);
+    pmEl.innerHTML = '<h3>PM activos en desarrollo</h3>' +
+      (pmEntries.length ? pmEntries.map(function(e) {
+        return '<div class="bar-row"><div class="bar-label" title="' + e[0] + '">' + e[0].split(' ').slice(0,2).join(' ') + '</div><div class="bar-track"><div class="bar-fill" style="width:' + Math.round(e[1]/maxP*100) + '%;background:#5b2d8e"></div></div><div class="bar-count">' + e[1] + '</div></div>';
+      }).join('') : '<p style="font-size:13px;color:var(--text-muted)">Sin PM asignados aún.</p>');
+  }
+
+  const statusOrder = ['sent','analysis','dev','review','indev','pause','done','rejected'];
   const maxS = Math.max(...statusOrder.map(s => byStatus[s] || 0), 1);
-  const statusColors = { sent:'#b45309', analysis:'#4f46e5', dev:'#7c3aed', done:'#16a34a', rejected:'#dc2626' };
+  const statusColors = { sent:'#b45309', analysis:'#1a73c8', dev:'#c2410c', review:'#0369a1', indev:'#5b2d8e', pause:'#854d0e', done:'#1b7a3e', rejected:'#dc2626' };
   // Rejected initiatives detail list
   const rejected = initiatives.filter(i => i.status === 'rejected');
   const rejEl = document.getElementById('rejected-list');
