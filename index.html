@@ -156,12 +156,17 @@
             <input type="email" id="f-email" readonly style="background:var(--surface-0);color:var(--text-secondary);cursor:default">
           </div>
           <div class="field">
-            <label for="f-area">Equipo <span class="req">*</span></label>
+            <label for="f-area">Área / Departamento <span class="req">*</span></label>
             <select id="f-area">
-              <option value="">Seleccionar Equipo</option>
-              <option>Planificación</option>
-              <option>Implementación</option>
-              <option>O&M</option>
+              <option value="">Seleccionar área</option>
+              <option>Operaciones</option>
+              <option>Finanzas</option>
+              <option>Recursos Humanos</option>
+              <option>Comercial / Ventas</option>
+              <option>TI / Tecnología</option>
+              <option>Atención al Cliente</option>
+              <option>Legal / Cumplimiento</option>
+              <option>Logística</option>
               <option>Otra</option>
             </select>
           </div>
@@ -215,7 +220,7 @@
           </div>
           <div class="field full">
             <label for="f-systems">Sistemas / herramientas involucradas</label>
-            <input type="text" id="f-systems" placeholder="Ej: Telcos, Excel, correo Outlook, portal web...">
+            <input type="text" id="f-systems" placeholder="Ej: SAP, Excel, correo Outlook, portal web...">
           </div>
           <div class="field full">
             <label for="f-notes">Notas adicionales o contexto</label>
@@ -313,7 +318,16 @@
         <div id="area-chart" class="dash-card"></div>
         <div id="status-chart" class="dash-card"></div>
       </div>
-      <div id="rejected-list" class="dash-card" style="margin-top:16px;grid-column:1/-1"></div>
+
+      <div class="dash-section-title">
+        <i class="ti ti-code"></i> Equipo de Desarrollo
+      </div>
+      <div class="dashboard-lower">
+        <div id="dev-status-chart" class="dash-card"></div>
+        <div id="pm-chart" class="dash-card"></div>
+      </div>
+
+      <div id="rejected-list" class="dash-card" style="margin-top:16px"></div>
     </section>
 
     <!-- COLA DESARROLLO -->
