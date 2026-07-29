@@ -680,3 +680,30 @@ textarea { resize: vertical; line-height: 1.6; }
 
 /* ─── indev badge ─── */
 .badge-indev { background: var(--purple-lt); color: var(--purple); }
+
+/* ─── PM current + change section ─── */
+.pm-current {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600; color: #fff;
+  background: rgba(245,166,35,.15);
+  border: 1px solid rgba(245,166,35,.3);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px; margin-bottom: 10px;
+}
+.pm-change-section {
+  border-top: 1px dashed rgba(255,255,255,.15);
+  padding-top: 10px; margin-top: 4px;
+}
+.pm-change-title {
+  font-size: 10px; font-weight: 700; color: #8ba3c4;
+  text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px;
+}
+.pm-change-reason {
+  width: 100%; margin: 8px 0;
+  background: var(--white); color: var(--text);
+  border: 1px solid var(--gray-bd);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px; font-family: inherit; font-size: 13px;
+  resize: none;
+}
+.pm-change-reason:focus { outline: none; border-color: var(--orange); }
