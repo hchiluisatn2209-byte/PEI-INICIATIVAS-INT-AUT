@@ -76,10 +76,10 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item active" data-tab="register" onclick="showTab('register')">
+      <button class="nav-item active non-dev" data-tab="register" onclick="showTab('register')">
         <i class="ti ti-plus"></i> Nueva iniciativa
       </button>
-      <button class="nav-item" data-tab="my" onclick="showTab('my')">
+      <button class="nav-item non-dev" data-tab="my" onclick="showTab('my')">
         <i class="ti ti-list-check"></i> Mis iniciativas
       </button>
       <div class="nav-divider" id="adminDivider" style="display:none">
@@ -105,6 +105,7 @@
         <select id="roleSelect" onchange="switchRole()">
           <option value="user">Solicitante</option>
           <option value="admin">Automatizaciones</option>
+          <option value="dev">Equipo Desarrollo</option>
         </select>
       </div>
       <div class="user-info">
@@ -155,12 +156,17 @@
             <input type="email" id="f-email" readonly style="background:var(--surface-0);color:var(--text-secondary);cursor:default">
           </div>
           <div class="field">
-            <label for="f-area">Equipo <span class="req">*</span></label>
+            <label for="f-area">Área / Departamento <span class="req">*</span></label>
             <select id="f-area">
-              <option value="">Seleccionar Equipo</option>
-              <option>Planificación</option>
-              <option>Implementación</option>
-              <option>O&M</option>
+              <option value="">Seleccionar área</option>
+              <option>Operaciones</option>
+              <option>Finanzas</option>
+              <option>Recursos Humanos</option>
+              <option>Comercial / Ventas</option>
+              <option>TI / Tecnología</option>
+              <option>Atención al Cliente</option>
+              <option>Legal / Cumplimiento</option>
+              <option>Logística</option>
               <option>Otra</option>
             </select>
           </div>
@@ -247,7 +253,10 @@
           <option value="draft">Borrador</option>
           <option value="sent">Enviado</option>
           <option value="analysis">En análisis</option>
-          <option value="dev">En desarrollo</option>
+          <option value="dev">Enviado a desarrollo</option>
+          <option value="review">En revisión</option>
+          <option value="indev">En desarrollo</option>
+          <option value="pause">En pausa</option>
           <option value="done">Completado</option>
           <option value="rejected">Rechazado</option>
         </select>
@@ -277,8 +286,7 @@
           <option value="">Todos los estados</option>
           <option value="sent">Enviado</option>
           <option value="analysis">En análisis</option>
-          <option value="dev">En desarrollo</option>
-          <option value="done">Completado</option>
+          <option value="dev">Enviado a desarrollo</option>
           <option value="rejected">Rechazado</option>
         </select>
         <select id="q-filter-impact" onchange="renderQueue()">
