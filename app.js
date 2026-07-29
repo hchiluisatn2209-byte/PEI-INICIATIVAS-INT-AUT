@@ -460,7 +460,12 @@ function renderQueueList() {
   const fi = document.getElementById('q-filter-impact').value;
   const fa = document.getElementById('q-filter-area').value;
   const list = getFiltered(fs, fi, fa)
-    .filter(i => i.status !== 'draft')
+    .filter(i => {
+      if (i.status === 'draft') return false;
+      const fs = document.getElementById('q-filter-status').value;
+      if (i.status === 'rejected') return fs === 'rejected';
+      return true;
+    })
     .sort((a, b) => (IMPACT_ORDER[a.impact] || 1) - (IMPACT_ORDER[b.impact] || 1));
 
   const el = document.getElementById('queue-list');
