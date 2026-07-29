@@ -662,3 +662,18 @@ textarea { resize: vertical; line-height: 1.6; }
   color: var(--text);
   font-weight: 500;
 }
+
+/* ─── V2: New status badges ─── */
+.badge-review { background: #e0f2fe; color: #0369a1; }
+.badge-pause  { background: #fef9c3; color: #854d0e; }
+
+/* ─── Dev controls panel ─── */
+.dev-controls {
+  border-top: 2px solid var(--blue) !important;
+}
+.dev-controls .admin-controls-title {
+  color: #60a5fa !important;
+}
+
+/* ─── V2: Enviado a desarrollo badge (orange tint) ─── */
+.badge-dev { background: #fff7ed; color: #c2410c; }
