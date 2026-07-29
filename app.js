@@ -194,13 +194,13 @@ if (!initiatives) {
 // ── Lookup maps ─────────────────────────────────────────
 const STATUS_LABEL = {
   draft: 'Borrador', sent: 'Enviado', analysis: 'En análisis',
-  dev: 'Enviado a desarrollo', review: 'En revisión', pause: 'En pausa',
-  done: 'Completado', rejected: 'Rechazado'
+  dev: 'Enviado a desarrollo', review: 'En revisión', indev: 'En desarrollo',
+  pause: 'En pausa', done: 'Completado', rejected: 'Rechazado'
 };
 const STATUS_BADGE = {
   draft: 'badge-draft', sent: 'badge-sent', analysis: 'badge-analysis',
-  dev: 'badge-dev', review: 'badge-review', pause: 'badge-pause',
-  done: 'badge-done', rejected: 'badge-rejected'
+  dev: 'badge-dev', review: 'badge-review', indev: 'badge-indev',
+  pause: 'badge-pause', done: 'badge-done', rejected: 'badge-rejected'
 };
 const IMPACT_LABEL = { high: 'Alto', med: 'Medio', low: 'Bajo' };
 const IMPACT_CLASS = { high: 'p-high', med: 'p-med', low: 'p-low' };
@@ -518,7 +518,7 @@ function clearQueueDetail() {
 let selectedDevId = null;
 
 function renderDevQueue() {
-  const list = initiatives.filter(i => ['dev','review','pause','done'].includes(i.status));
+  const list = initiatives.filter(i => ['dev','review','indev','pause','done'].includes(i.status));
   const el = document.getElementById('devqueue-list');
   if (!el) return;
   document.getElementById('devqueue-detail').innerHTML = emptyDetail();
@@ -547,6 +547,10 @@ function setDevDetail(id) {
 }
 
 async function changeDevStatus(id, newStatus) {
+  if (newStatus === 'rejected') {
+    showRejectModal(id);
+    return;
+  }
   const i = initiatives.find(x => x.id === id);
   if (!i) return;
   const prev = i.status;
@@ -840,7 +844,7 @@ function detailHTML(i, isAdmin, isDev) {
       '</div>' +
       '<div class="status-section-title">Cambiar estado</div>' +
       '<div class="status-buttons">' +
-        ['review','pause','done','rejected'].map(function(s) {
+        ['review','indev','pause','done','rejected'].map(function(s) {
           return '<button class="btn btn-sm' + (i.status === s ? ' btn-primary' : '') + '" onclick="changeDevStatus(\'' + i.id + '\',\'' + s + '\')">' + STATUS_LABEL[s] + '</button>';
         }).join('') +
       '</div>' +
