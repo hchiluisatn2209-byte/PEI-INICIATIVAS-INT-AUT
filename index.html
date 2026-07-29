@@ -16,7 +16,7 @@
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
       <div class="login-icon"><i class="ti ti-sparkles"></i></div>
-      <h1>Iniciativas Automatización Proyectos Corporativos</h1>
+      <h1>Iniciativas Proyectos Corporativos</h1>
       <p>Inicia sesión con tu cuenta Google para continuar</p>
       <div id="g_id_onload"
         data-client_id="854110005645-q48g3aoudtps1kr8e3k60k6rdkio7ji9.apps.googleusercontent.com"
@@ -70,7 +70,7 @@
     <div class="sidebar-brand">
       <div class="brand-icon"><i class="ti ti-sparkles"></i></div>
       <div>
-        <div class="brand-name">Iniciativas IA - Proyectos Corporativos</div>
+        <div class="brand-name">Iniciativas Proyectos Corporativos</div>
         <div class="brand-sub">Automatizaciones</div>
       </div>
     </div>
@@ -90,6 +90,12 @@
       </button>
       <button class="nav-item admin-only" data-tab="dashboard" onclick="showTab('dashboard')" style="display:none">
         <i class="ti ti-chart-bar"></i> Dashboard
+      </button>
+      <div class="nav-divider dev-only" id="devDivider" style="display:none">
+        <span>Equipo Desarrollo</span>
+      </div>
+      <button class="nav-item dev-only" data-tab="devqueue" onclick="showTab('devqueue')" style="display:none">
+        <i class="ti ti-code"></i> Mis desarrollos
       </button>
     </nav>
 
@@ -149,12 +155,17 @@
             <input type="email" id="f-email" readonly style="background:var(--surface-0);color:var(--text-secondary);cursor:default">
           </div>
           <div class="field">
-            <label for="f-area">Equipo <span class="req">*</span></label>
+            <label for="f-area">Área / Departamento <span class="req">*</span></label>
             <select id="f-area">
-              <option value="">Seleccionar Equipo</option>
-              <option>Planificación</option>
-              <option>Implmentación</option>
-              <option>O&M</option>
+              <option value="">Seleccionar área</option>
+              <option>Operaciones</option>
+              <option>Finanzas</option>
+              <option>Recursos Humanos</option>
+              <option>Comercial / Ventas</option>
+              <option>TI / Tecnología</option>
+              <option>Atención al Cliente</option>
+              <option>Legal / Cumplimiento</option>
+              <option>Logística</option>
               <option>Otra</option>
             </select>
           </div>
@@ -208,7 +219,7 @@
           </div>
           <div class="field full">
             <label for="f-systems">Sistemas / herramientas involucradas</label>
-            <input type="text" id="f-systems" placeholder="Ej: Telcos, Excel, correo Outlook, portal web...">
+            <input type="text" id="f-systems" placeholder="Ej: SAP, Excel, correo Outlook, portal web...">
           </div>
           <div class="field full">
             <label for="f-notes">Notas adicionales o contexto</label>
@@ -305,6 +316,20 @@
         <div id="status-chart" class="dash-card"></div>
       </div>
       <div id="rejected-list" class="dash-card" style="margin-top:16px;grid-column:1/-1"></div>
+    </section>
+
+    <!-- COLA DESARROLLO -->
+    <section id="sec-devqueue" class="section">
+      <div class="page-header">
+        <div>
+          <h1>Mis desarrollos</h1>
+          <p>Iniciativas en desarrollo asignadas a tu equipo. Actualiza el estado y agrega notas de avance.</p>
+        </div>
+      </div>
+      <div class="list-detail-layout">
+        <div id="devqueue-list" class="item-list"></div>
+        <div id="devqueue-detail" class="detail-pane"></div>
+      </div>
     </section>
 
   </main>
