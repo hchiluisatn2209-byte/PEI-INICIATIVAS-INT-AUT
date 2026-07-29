@@ -840,13 +840,32 @@ function detailHTML(i, isAdmin, isDev) {
     (isDev ?
     '<div class="admin-controls dev-controls">' +
       '<div class="admin-controls-title"><i class="ti ti-code"></i> Gestión · Equipo de Desarrollo</div>' +
-      '<div class="pm-assign-row">' +
-        '<label class="pm-label"><i class="ti ti-user-check"></i> PM / Responsable a cargo</label>' +
-        '<div class="pm-row">' +
-          '<select id="pm-select-' + i.id + '" class="pm-select">' + pmOptions(i.pm) + '</select>' +
-          '<button class="btn btn-sm" onclick="assignPM(\'' + i.id + '\')">Asignar</button>' +
-        '</div>' +
-      '</div>' +
+
+      // PM assign: solo visible cuando estado es 'indev' (En desarrollo)
+      (i.status === 'indev' ?
+        '<div class="pm-assign-row">' +
+          '<label class="pm-label"><i class="ti ti-user-check"></i> PM / Responsable a cargo</label>' +
+          (i.pm ?
+            // Ya tiene PM → mostrar actual + opción de cambio con justificación
+            '<div class="pm-current"><i class="ti ti-user-check"></i> ' + esc(i.pm) + '</div>' +
+            '<div class="pm-change-section">' +
+              '<div class="pm-change-title">Cambiar PM / Responsable</div>' +
+              '<div class="pm-row">' +
+                '<select id="pm-select-' + i.id + '" class="pm-select">' + pmOptions(i.pm) + '</select>' +
+              '</div>' +
+              '<textarea id="pm-change-reason-' + i.id + '" class="pm-change-reason" placeholder="Justificación del cambio de PM (obligatorio)..." rows="2"></textarea>' +
+              '<button class="btn btn-sm" onclick="changePMWithReason(\'' + i.id + '\')">Confirmar cambio</button>' +
+            '</div>'
+          :
+            // Sin PM → asignar por primera vez
+            '<div class="pm-row">' +
+              '<select id="pm-select-' + i.id + '" class="pm-select">' + pmOptions(i.pm) + '</select>' +
+              '<button class="btn btn-sm btn-primary" onclick="assignPM(\'' + i.id + '\')">Asignar</button>' +
+            '</div>'
+          ) +
+        '</div>'
+      : '') +
+
       '<div class="status-section-title">Cambiar estado</div>' +
       '<div class="status-buttons">' +
         ['review','indev','pause','done','rejected'].map(function(s) {
@@ -959,6 +978,27 @@ function getSampleData() {
       ]
     }
   ];
+}
+
+async function changePMWithReason(id) {
+  const sel = document.getElementById('pm-select-' + id);
+  const reasonEl = document.getElementById('pm-change-reason-' + id);
+  if (!sel || !reasonEl) return;
+  const newPM = sel.value;
+  const reason = reasonEl.value.trim();
+  if (!newPM) { toast('Selecciona un PM'); return; }
+  if (!reason) { toast('La justificación del cambio es obligatoria'); return; }
+  const i = initiatives.find(x => x.id === id);
+  if (!i) return;
+  const prevPM = i.pm || 'Sin asignar';
+  i.pm = newPM;
+  i.updates = i.updates || [];
+  i.updates.push({ date: today(), author: 'Equipo Desarrollo', msg: 'Cambio de PM: ' + prevPM + ' → ' + newPM + '. Motivo: ' + reason });
+  persist();
+  await saveToSupabase(i);
+  toast('PM actualizado');
+  setDevDetail(id);
+  renderDevQueue();
 }
 
 function toggleRejected() {
