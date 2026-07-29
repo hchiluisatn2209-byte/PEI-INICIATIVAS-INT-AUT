@@ -229,13 +229,18 @@ function showTab(id) {
 function switchRole() {
   role = document.getElementById('roleSelect').value;
   const adminEls = document.querySelectorAll('.admin-only');
-  const devEls = document.querySelectorAll('.dev-only');
+  const devEls   = document.querySelectorAll('.dev-only');
+  const nonDevEls = document.querySelectorAll('.non-dev');
   const adminDivider = document.getElementById('adminDivider');
-  const devDivider = document.getElementById('devDivider');
+  const devDivider   = document.getElementById('devDivider');
+
   adminEls.forEach(el => el.style.display = role === 'admin' ? 'flex' : 'none');
-  devEls.forEach(el => el.style.display = role === 'dev' ? 'flex' : 'none');
+  devEls.forEach(el   => el.style.display = role === 'dev'   ? 'flex' : 'none');
+  nonDevEls.forEach(el => el.style.display = role === 'dev'  ? 'none' : 'flex');
+
   if (adminDivider) adminDivider.style.display = role === 'admin' ? 'block' : 'none';
-  if (devDivider) devDivider.style.display = role === 'dev' ? 'block' : 'none';
+  if (devDivider)   devDivider.style.display   = role === 'dev'   ? 'block' : 'none';
+
   if (role === 'admin') showTab('queue');
   else if (role === 'dev') showTab('devqueue');
   else showTab('my');
