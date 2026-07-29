@@ -382,13 +382,15 @@ textarea { resize: vertical; line-height: 1.6; }
 
 .comment-form { display: flex; gap: 8px; margin-top: 10px; }
 .comment-form input {
-  flex: 1; background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.15);
-  color: #fff; border-radius: var(--radius-sm);
+  flex: 1;
+  background: var(--white);
+  border: 1px solid var(--gray-bd);
+  color: var(--text);
+  border-radius: var(--radius-sm);
   padding: 8px 11px; font-family: inherit; font-size: 13px;
 }
-.comment-form input::placeholder { color: #4a6080; }
-.comment-form input:focus { outline: none; border-color: var(--orange); }
+.comment-form input::placeholder { color: var(--text3); }
+.comment-form input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,166,35,.15); }
 
 /* ─── Timeline ─── */
 .timeline { padding: 16px 24px; border-top: 1px solid var(--gray-bd); }
@@ -520,8 +522,16 @@ textarea { resize: vertical; line-height: 1.6; }
 .pm-assign-row { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
 .pm-label { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; color: #8ba3c4; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
 .pm-row { display: flex; gap: 8px; align-items: center; }
-.pm-select { flex: 1; padding: 7px 10px; border: 1px solid rgba(255,255,255,.15); border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; background: rgba(255,255,255,.07); color: #fff; }
+.pm-select {
+  flex: 1; padding: 7px 10px;
+  border: 1px solid var(--gray-bd);
+  border-radius: var(--radius-sm);
+  font-family: inherit; font-size: 13px;
+  background: var(--white);
+  color: var(--text);
+}
 .pm-select:focus { outline: none; border-color: var(--orange); }
+.pm-select option { background: var(--white); color: var(--text); }
 .status-section-title { font-size: 10px; font-weight: 700; color: #8ba3c4; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
 
 /* ─── Draft edit form ─── */
