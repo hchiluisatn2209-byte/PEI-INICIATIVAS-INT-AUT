@@ -717,14 +717,16 @@ function detailHTML(i, isAdmin) {
       '<span class="badge ' + STATUS_BADGE[i.status] + '">' + STATUS_LABEL[i.status] + '</span>' +
     '</div>' +
     '<div class="detail-body">' +
-      '<div class="detail-row"><span class="detail-label">Solicitante</span><span class="detail-value">' + esc(i.name) + '</span></div>' +
-      '<div class="detail-row"><span class="detail-label">Correo</span><span class="detail-value">' + esc(i.email || '—') + '</span></div>' +
-      '<div class="detail-row"><span class="detail-label">Área</span><span class="detail-value">' + esc(i.area || '—') + '</span></div>' +
-      '<div class="detail-row"><span class="detail-label">Impacto estimado</span><span class="detail-value"><span class="impact-pill ' + (IMPACT_CLASS[i.impact] || '') + '">' + (IMPACT_LABEL[i.impact] || '—') + '</span></span></div>' +
-      '<div class="detail-row"><span class="detail-label">Frecuencia</span><span class="detail-value">' + esc(i.freq || '—') + '</span></div>' +
-      '<div class="detail-row"><span class="detail-label">Horas / ejecución</span><span class="detail-value">' + (i.hours ? i.hours + 'h' : '—') + '</span></div>' +
-      '<div class="detail-row"><span class="detail-label">Personas involucradas</span><span class="detail-value">' + (i.people || '—') + '</span></div>' +
-      '<div class="detail-row"><span class="detail-label">Sistemas</span><span class="detail-value">' + esc(i.systems || '—') + '</span></div>' +
+      '<div class="dmg">' +
+        '<div class="dmi"><span class="dml">Solicitante</span><span class="dmv">' + esc(i.name) + '</span></div>' +
+        '<div class="dmi"><span class="dml">Correo</span><span class="dmv">' + esc(i.email || '—') + '</span></div>' +
+        '<div class="dmi"><span class="dml">Área</span><span class="dmv">' + esc(i.area || '—') + '</span></div>' +
+        '<div class="dmi"><span class="dml">Impacto estimado</span><span class="dmv"><span class="impact-pill ' + (IMPACT_CLASS[i.impact]||'') + '">' + (IMPACT_LABEL[i.impact]||'—') + '</span></span></div>' +
+        '<div class="dmi"><span class="dml">Frecuencia</span><span class="dmv">' + esc(i.freq || '—') + '</span></div>' +
+        '<div class="dmi"><span class="dml">Horas / ejecución</span><span class="dmv">' + (i.hours ? i.hours+'h' : '—') + '</span></div>' +
+        '<div class="dmi"><span class="dml">Personas involucradas</span><span class="dmv">' + (i.people||'—') + '</span></div>' +
+        '<div class="dmi"><span class="dml">Sistemas</span><span class="dmv">' + esc(i.systems||'—') + '</span></div>' +
+      '</div>' +
       '<div class="detail-row"><span class="detail-label">PM / Responsable</span><span class="detail-value">' + esc(i.pm || '—') + '</span></div>' +
       '<div class="detail-block"><span class="detail-label">Proceso actual</span><div class="detail-value">' + esc(i.desc || '—') + '</div></div>' +
       '<div class="detail-block"><span class="detail-label">Resultado esperado</span><div class="detail-value">' + esc(i.expected || '—') + '</div></div>' +
